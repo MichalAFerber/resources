@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GitHub Repo Tree Browser</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --card: #121831;
+            --ink: #e8ecfa;
+            --muted: #b8c0e0;
+            --accent: #6ea8fe;
+            --line: #223058
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #0b1020, #0b1020 30%, #0e1630);
+            color: var(--ink);
+            font: 14px/1.5 system-ui, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: rgba(11, 16, 32, .8);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--line)
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: auto;
+            padding: 12px 16px
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0
+        }
+
+        #controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 8px
+        }
+
+        input,
+        select,
+        button {
+            background: #0f1731;
+            border: 1px solid var(--line);
+            color: var(--ink);
+            border-radius: 10px;
+            padding: 8px 10px
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 16px auto;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 16px;
+            padding: 0 16px
+        }
+
+        @media (max-width:900px) {
+            main {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden
+        }
+
+        .panel header {
+            position: unset;
+            background: transparent;
+            border: 0
+        }
+
+        .panel .head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .tree {
+            padding: 8px 8px 12px 12px;
+            max-height: 70vh;
+            overflow: auto
+        }
+
+        details {
+            padding-left: 4px
+        }
+
+        details>summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 8px
+        }
+
+        details>summary:hover {
+            background: #0f1838
+        }
+
+        .node {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 8px
+        }
+
+        .node:hover {
+            background: #0f1838
+        }
+
+        .node a {
+            color: var(--ink);
+            text-decoration: none;
+            flex: 1
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block
+        }
+
+        .file {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .badge {
+            font-size: 11px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            padding: 2px 6px;
+            border-radius: 999px
+        }
+
+        .crumbs {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px
+        }
+
+        .crumbs a {
+            color: var(--accent);
+            text-decoration: none
+        }
+
+        .viewer {
+            min-height: 360px
+        }
+
+        .viewer .empty {
+            padding: 20px;
+            color: var(--muted)
+        }
+
+        .viewer .preview {
+            padding: 10px;
+            display: grid;
+            place-items: center
+        }
+
+        .viewer img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            border: 1px solid var(--line)
+        }
+
+        .viewer pre {
+            margin: 0;
+            padding: 14px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .toolbar a {
+            color: var(--ink);
+            text-decoration: none
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            padding: 12px
+        }
+
+        .thumb {
+            background: #0f1731;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .thumb img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 8px
+        }
+
+        .thumb .name {
+            font-size: 12px;
+            color: var(--muted);
+            word-break: break-all
+        }
+
+        .footer {
+            padding: 10px 14px;
+            border-top: 1px solid var(--line);
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .pill {
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: #0f1731;
+            border: 1px solid var(--line);
+            font-size: 11px
+        }
+
+        .right {
+            margin-left: auto
+        }
+    </style>
+</head>
+
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+        <symbol id="dir" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M10 4l2 2h8a2 2 0 012 2v1H2V6a2 2 0 012-2h6zm12 6v8a2 2 0 01-2 2H4a2 2 0 01-2-2v-8h20z" />
+        </symbol>
+        <symbol id="file" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M6 2h9l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2zm8 1.5V8h4.5L14 3.5z" />
+        </symbol>
+        <symbol id="img" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M21 19a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v12zm-4-8a2 2 0 10-4 0 2 2 0 004 0zM5 19l5-6 4 5 3-4 4 5H5z" />
+        </symbol>
+        <symbol id="home" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3l9-8z" />
+        </symbol>
+        <symbol id="ext" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z" />
+        </symbol>
+        <symbol id="raw" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
+        </symbol>
+    </svg>
+
+    <header>
+        <div class="wrap">
+            <h1>GitHub Repo Tree Browser</h1>
+            <div id="controls">
+                <label>Owner <input id="owner" value="MichalAFerber" /></label>
+                <label>Repo <input id="repo" value="resources" /></label>
+                <label>Branch <input id="branch" value="main" /></label>
+                <button id="load">Load</button>
+                <span class="pill">Unauthenticated · public repos only · 60 req/hr</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="panel" id="treePanel">
+            <div class="head"><strong>Folders & Files</strong><span id="treeCount" class="right muted"></span></div>
+            <nav class="crumbs" id="crumbs"></nav>
+            <div class="tree" id="tree"></div>
+            <div class="footer">Tip: click folders to expand; click files to preview or open raw.</div>
+        </section>
+
+        <section class="panel">
+            <div class="toolbar">
+                <strong id="viewerTitle">Viewer</strong>
+                <span id="viewerMeta" class="muted"></span>
+                <a id="openOnGitHub" class="right" href="#" target="_blank" rel="noopener"><svg class="icon">
+                        <use href="#ext" />
+                    </svg> View on GitHub</a>
+                <a id="openRaw" href="#" target="_blank" rel="noopener"><svg class="icon">
+                        <use href="#raw" />
+                    </svg> Raw</a>
+            </div>
+            <div class="viewer" id="viewer">
+                <div class="empty">Select a file to preview. Images render inline; text files up to ~1 MB are shown;
+                    others offer a raw/download link.</div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const els = {
+            owner: document.getElementById('owner'),
+            repo: document.getElementById('repo'),
+            branch: document.getElementById('branch'),
+            loadBtn: document.getElementById('load'),
+            tree: document.getElementById('tree'),
+            crumbs: document.getElementById('crumbs'),
+            treeCount: document.getElementById('treeCount'),
+            viewer: document.getElementById('viewer'),
+            viewerTitle: document.getElementById('viewerTitle'),
+            viewerMeta: document.getElementById('viewerMeta'),
+            openGH: document.getElementById('openOnGitHub'),
+            openRaw: document.getElementById('openRaw'),
+        };
+
+        const IMAGE_EXT = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".svg"];
+        const TEXT_EXT = [".md", ".txt", ".json", ".yml", ".yaml", ".csv", ".js", ".ts", ".css", ".html", ".xml", ".sh", ".py"];
+
+        function apiURL(owner, repo, path, branch) {
+            const p = path ? `/${encodeURIComponent(path).replace(/%2F/g, '/')}` : '';
+            return `https://api.github.com/repos/${owner}/${repo}/contents${p}?ref=${encodeURIComponent(branch)}`;
+        }
+        function rawURL(owner, repo, path, branch) {
+            return `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(branch)}/${path}`;
+        }
+        function ghURL(owner, repo, path, branch) {
+            const base = `https://github.com/${owner}/${repo}`;
+            return path ? `${base}/blob/${encodeURIComponent(branch)}/${path}` : base;
+        }
+
+        // --- Safe URL state helpers ---
+        // Some environments (iframes, about:srcdoc) disallow history.replaceState.
+        // We guard it and fall back to updating location.hash so deep links still work when embedded.
+        function setQuery(path) {
+            const params = new URLSearchParams(location.search);
+            if (path) params.set('path', path); else params.delete('path');
+            try {
+                if (location.protocol !== 'about:') {
+                    const newUrl = `${location.origin}${location.pathname}?${params}`;
+                    history.replaceState(null, '', newUrl);
+                    return; // success
+                }
+            } catch (e) {
+                // ignore and fall back to hash below
+            }
+            // Fallback for sandboxed/about:srcdoc contexts
+            if (path) {
+                location.hash = '#path=' + encodeURIComponent(path);
+            } else if (location.hash.startsWith('#path=')) {
+                location.hash = '';
+            }
+        }
+        function getQueryPath() {
+            const sp = new URLSearchParams(location.search);
+            if (sp.has('path')) return sp.get('path') || '';
+            if (location.hash.startsWith('#path=')) {
+                try { return decodeURIComponent(location.hash.slice(6)); } catch { return location.hash.slice(6); }
+            }
+            return '';
+        }
+
+        async function fetchDir(path = "") {
+            const res = await fetch(apiURL(els.owner.value, els.repo.value, path, els.branch.value));
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        function iconFor(item) {
+            if (item.type === 'dir') return '#dir';
+            const name = item.name.toLowerCase();
+            if (IMAGE_EXT.some(ext => name.endsWith(ext))) return '#img';
+            return '#file';
+        }
+
+        function renderCrumbs(path) {
+            const parts = path ? path.split('/') : [];
+            let acc = '';
+            els.crumbs.innerHTML = '';
+            const home = document.createElement('a');
+            home.innerHTML = `<svg class="icon"><use href="#home"/></svg>`;
+            home.href = '#';
+            home.onclick = (e) => { e.preventDefault(); loadPath(''); }
+            els.crumbs.appendChild(home);
+            parts.forEach((seg, i) => {
+                const span = document.createElement('span');
+                span.textContent = ' / ';
+                els.crumbs.appendChild(span);
+                acc += (i ? '/' : '') + seg;
+                const a = document.createElement('a');
+                a.textContent = seg;
+                a.href = '#';
+                a.onclick = (e) => { e.preventDefault(); loadPath(acc); }
+                els.crumbs.appendChild(a);
+            })
+        }
+
+        async function buildList(path, container) {
+            container.textContent = 'Loading…';
+            try {
+                const items = await fetchDir(path);
+                // Sort: folders first, then files (alpha)
+                items.sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type === 'dir' ? -1 : 1));
+                els.treeCount.textContent = `${items.length} items`;
+                container.innerHTML = '';
+                for (const item of items) {
+                    if (item.type === 'dir') {
+                        const d = document.createElement('details');
+                        const s = document.createElement('summary');
+                        s.innerHTML = `<svg class="icon"><use href="${iconFor(item)}"/></svg><span>${item.name}</span>`;
+                        d.appendChild(s);
+                        const inner = document.createElement('div');
+                        inner.style.paddingLeft = '14px';
+                        inner.textContent = '…';
+                        d.appendChild(inner);
+                        d.addEventListener('toggle', async () => {
+                            if (d.open && inner.textContent === '…') {
+                                await buildList(item.path, inner);
+                            }
+                        });
+                        container.appendChild(d);
+                    } else {
+                        const row = document.createElement('div');
+                        row.className = 'node file';
+                        row.innerHTML = `<svg class="icon"><use href="${iconFor(item)}"/></svg><a href="#">${item.name}</a><span class="badge muted">${Math.round(item.size / 1024)} KB</span>`;
+                        const link = row.querySelector('a');
+                        link.onclick = (e) => { e.preventDefault(); openFile(item) };
+                        container.appendChild(row);
+                    }
+                }
+                // If directory contains many images, show a grid preview below
+                const imgItems = items.filter(it => it.type === 'file' && IMAGE_EXT.some(ext => it.name.toLowerCase().endsWith(ext)));
+                if (imgItems.length >= 4) {
+                    const grid = document.createElement('div');
+                    grid.className = 'grid';
+                    for (const it of imgItems.slice(0, 40)) {
+                        const t = document.createElement('a');
+                        t.className = 'thumb';
+                        t.href = '#';
+                        t.onclick = (e) => { e.preventDefault(); openFile(it) };
+                        const img = document.createElement('img');
+                        img.loading = 'lazy';
+                        img.src = rawURL(els.owner.value, els.repo.value, it.path, els.branch.value);
+                        const name = document.createElement('div'); name.className = 'name'; name.textContent = it.name;
+                        t.append(img, name);
+                        grid.appendChild(t);
+                    }
+                    const label = document.createElement('div');
+                    label.className = 'muted';
+                    label.style.padding = '8px 12px 0';
+                    label.textContent = 'Image preview';
+                    container.append(label, grid);
+                }
+            } catch (err) {
+                container.innerHTML = `<div class="muted" style="padding:8px 12px">${err}</div>`;
+            }
+        }
+
+        async function openFile(item) {
+            const owner = els.owner.value, repo = els.repo.value, branch = els.branch.value;
+            const raw = rawURL(owner, repo, item.path, branch);
+            const gh = ghURL(owner, repo, item.path, branch);
+            els.viewerTitle.textContent = item.name;
+            els.viewerMeta.textContent = ` · ${Math.round(item.size / 1024)} KB`;
+            els.openGH.href = gh;
+            els.openRaw.href = raw;
+            const lower = item.name.toLowerCase();
+            if (IMAGE_EXT.some(ext => lower.endsWith(ext))) {
+                els.viewer.innerHTML = `<div class="preview"><img alt="${item.name}" src="${raw}"></div>`;
+            } else if (TEXT_EXT.some(ext => lower.endsWith(ext)) && item.size < 1024 * 1024) {
+                // Load text
+                els.viewer.innerHTML = '<div class="empty">Loading text…</div>';
+                try {
+                    const res = await fetch(raw);
+                    const text = await res.text();
+                    const pre = document.createElement('pre');
+                    pre.textContent = text;
+                    els.viewer.innerHTML = '';
+                    els.viewer.appendChild(pre);
+                } catch (e) {
+                    els.viewer.innerHTML = `<div class="empty">Could not load text. <a href="${raw}" target="_blank" rel="noopener">Open raw</a></div>`
+                }
+            } else {
+                els.viewer.innerHTML = `<div class="empty">Preview not available. Use <a href="${gh}" target="_blank" rel="noopener">View on GitHub</a> or <a href="${raw}" target="_blank" rel="noopener">open raw</a>.</div>`
+            }
+            // keep query/hash in sync (safe across sandboxed contexts)
+            setQuery(item.path);
+            // ensure viewer visible on mobile
+            document.querySelector('section.panel:nth-of-type(2)').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function loadPath(path) {
+            renderCrumbs(path);
+            els.tree.innerHTML = '';
+            await buildList(path, els.tree);
+            // if a file path is given, open it after listing parent dir
+            const itemName = path.split('/').pop();
+            const isMaybeFile = itemName && itemName.includes('.') && !path.endsWith('/');
+            if (isMaybeFile) {
+                try {
+                    const parent = path.split('/').slice(0, -1).join('/');
+                    const items = await fetchDir(parent);
+                    const found = items.find(i => i.path === path);
+                    if (found) openFile(found);
+                } catch { }
+            }
+        }
+
+        function runSelfTests() {
+            // Minimal tests for safe state helpers. Run with ?selftest=1
+            const results = [];
+            const prevHash = location.hash;
+            try {
+                setQuery('test/path.png');
+                const got = getQueryPath();
+                results.push(['set/get path roundtrip', got === 'test/path.png', got]);
+            } catch (e) {
+                results.push(['setQuery did not throw', false, String(e)]);
+            } finally {
+                // cleanup
+                if (prevHash !== location.hash) location.hash = prevHash;
+                try { if (location.protocol !== 'about:') history.replaceState(null, '', `${location.origin}${location.pathname}${location.search}`); } catch { }
+            }
+            console.group('Self-tests');
+            for (const [name, ok, detail] of results) {
+                if (ok) console.log('✔', name); else console.error('✘', name, 'detail:', detail);
+            }
+            console.groupEnd();
+        }
+
+        async function boot() {
+            // Initialize from query params if provided
+            const params = new URLSearchParams(location.search);
+            if (params.get('owner')) els.owner.value = params.get('owner');
+            if (params.get('repo')) els.repo.value = params.get('repo');
+            if (params.get('branch')) els.branch.value = params.get('branch');
+            const path = getQueryPath();
+            if (params.get('selftest') === '1') runSelfTests();
+            await loadPath(path);
+        }
+
+        els.loadBtn.addEventListener('click', () => loadPath(''));
+        window.addEventListener('popstate', () => loadPath(getQueryPath()));
+        window.addEventListener('hashchange', () => loadPath(getQueryPath()));
+
+        boot();
+    </script>
+</body>
+
+</html>
