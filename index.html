@@ -1,18 +1,44 @@
+<!-- SPDX-License-Identifier: MIT -->
 <!doctype html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- avoid favicon 404 in static hosting -->
+    <link rel="icon" href="data:,">
     <title>GitHub Repo Tree Browser</title>
     <style>
+        /* THEME TOKENS */
         :root {
-            --bg: #0b1020;
-            --card: #121831;
-            --ink: #e8ecfa;
-            --muted: #b8c0e0;
-            --accent: #6ea8fe;
-            --line: #223058
+            --bg: #121212;
+            --card: #1b1b1b;
+            --ink: #ededed;
+            --muted: #a0a0a0;
+            --accent: #121212;
+            --line: #2a2a2a;
+            --warn: #e9b949;
+            --control: #1a1a1a
+        }
+
+        [data-theme="light"] {
+            --bg: #f7f7f7;
+            --card: #ffffff;
+            --ink: #121212;
+            --muted: #5c647a;
+            --accent: #121212;
+            --line: #e5e5e5;
+            --control: #f2f2f2
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card: #1b1b1b;
+            --ink: #ededed;
+            --muted: #a0a0a0;
+            --accent: #121212;
+            --line: #2a2a2a;
+            --control: #1a1a1a
         }
 
         * {
@@ -26,7 +52,7 @@
 
         body {
             margin: 0;
-            background: linear-gradient(180deg, #0b1020, #0b1020 30%, #0e1630);
+            background: var(--bg);
             color: var(--ink);
             font: 14px/1.5 system-ui, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"
         }
@@ -35,9 +61,13 @@
             position: sticky;
             top: 0;
             z-index: 5;
-            background: rgba(11, 16, 32, .8);
+            background: rgba(18, 18, 18, .85);
             backdrop-filter: blur(8px);
             border-bottom: 1px solid var(--line)
+        }
+
+        [data-theme="light"] header {
+            background: rgba(255, 255, 255, .75)
         }
 
         .wrap {
@@ -59,18 +89,40 @@
             margin-top: 8px
         }
 
+        #controls .spacer {
+            flex: 1
+        }
+
+        #themeBtn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        #themeBtn .mode {
+            opacity: .8;
+            font-size: 12px
+        }
+
         input,
         select,
         button {
-            background: #0f1731;
+            background: var(--control);
             border: 1px solid var(--line);
             color: var(--ink);
             border-radius: 10px;
             padding: 8px 10px
         }
 
+        [data-theme="light"] input,
+        [data-theme="light"] select,
+        [data-theme="light"] button {
+            background: #f2f4fb
+        }
+
         button {
-            cursor: pointer
+            cursor: pointer;
+            position: relative
         }
 
         main {
@@ -92,7 +144,7 @@
             background: var(--card);
             border: 1px solid var(--line);
             border-radius: 16px;
-            overflow: hidden
+            overflow: visible
         }
 
         .panel header {
@@ -130,7 +182,7 @@
         }
 
         details>summary:hover {
-            background: #0f1838
+            background: rgba(255, 255, 255, .04)
         }
 
         .node {
@@ -142,7 +194,7 @@
         }
 
         .node:hover {
-            background: #0f1838
+            background: rgba(255, 255, 255, .04)
         }
 
         .node a {
@@ -184,8 +236,12 @@
         }
 
         .crumbs a {
-            color: var(--accent);
+            color: var(--ink);
             text-decoration: none
+        }
+
+        .crumbs a:hover {
+            text-decoration: underline
         }
 
         .viewer {
@@ -226,9 +282,16 @@
             border-bottom: 1px solid var(--line)
         }
 
-        .toolbar a {
+        .toolbar a,
+        .toolbar button {
             color: var(--ink);
             text-decoration: none
+        }
+
+        .toolbar .group {
+            display: flex;
+            gap: 8px;
+            align-items: center
         }
 
         .grid {
@@ -239,13 +302,17 @@
         }
 
         .thumb {
-            background: #0f1731;
+            background: var(--control);
             border: 1px solid var(--line);
             border-radius: 12px;
             padding: 8px;
             display: flex;
             flex-direction: column;
             gap: 8px
+        }
+
+        [data-theme="light"] .thumb {
+            background: #f2f4fb
         }
 
         .thumb img {
@@ -271,13 +338,177 @@
         .pill {
             padding: 2px 6px;
             border-radius: 6px;
-            background: #0f1731;
+            background: var(--control);
             border: 1px solid var(--line);
             font-size: 11px
         }
 
+        [data-theme="light"] .pill {
+            background: #f2f4fb
+        }
+
         .right {
             margin-left: auto
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 100;
+            background: var(--card);
+            border: 1px solid var(--line);
+            color: var(--ink);
+            padding: 10px 12px;
+            border-radius: 10px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity .15s ease, transform .15s ease
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        /* Banner */
+        .banner {
+            display: none;
+            gap: 10px;
+            align-items: flex-start;
+            background: #2a1f07;
+            color: #fff;
+            border-bottom: 1px solid #4a360c
+        }
+
+        .banner .wrap {
+            display: flex;
+            gap: 12px;
+            align-items: center
+        }
+
+        .banner .warn {
+            color: var(--warn)
+        }
+
+        .banner button {
+            background: #3a2b08
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            display: none;
+            z-index: 50
+        }
+
+        .lightbox.open {
+            display: flex
+        }
+
+        .lightbox .inner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%
+        }
+
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            transition: transform .2s ease
+        }
+
+        .lightbox .close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 999px;
+            padding: 8px 10px;
+            cursor: pointer
+        }
+
+        .lightbox .nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px
+        }
+
+        .lightbox .prev {
+            left: 16px
+        }
+
+        .lightbox .next {
+            right: 16px
+        }
+
+        .btn {
+            background: var(--control);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 6px 10px;
+            cursor: pointer
+        }
+
+        [data-theme="light"] .btn {
+            background: #f2f4fb
+        }
+
+        /* Hover help tooltip (no JS) */
+        .has-tip {
+            position: relative
+        }
+
+        .has-tip[aria-label]::after {
+            content: attr(aria-label);
+            position: absolute;
+            left: 50%;
+            top: calc(100% + 8px);
+            transform: translateX(-50%);
+            background: var(--card);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            padding: 6px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .12s ease;
+            z-index: 20
+        }
+
+        .has-tip:hover::after {
+            opacity: 1
+        }
+
+        /* Copied badge animation */
+        .pop {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            opacity: 0;
+            transform: translateY(-6px);
+            transition: opacity .15s ease, transform .15s ease
+        }
+
+        .pop.show {
+            opacity: 1;
+            transform: translateY(0)
         }
     </style>
 </head>
@@ -308,6 +539,13 @@
         </symbol>
     </svg>
 
+    <div class="banner" id="banner">
+        <div class="wrap"><span class="warn">⚠</span>
+            <div id="bannerMsg">API rate limit or network issue.</div><button class="btn"
+                id="bannerClose">Dismiss</button>
+        </div>
+    </div>
+
     <header>
         <div class="wrap">
             <h1>GitHub Repo Tree Browser</h1>
@@ -315,7 +553,12 @@
                 <label>Owner <input id="owner" value="MichalAFerber" /></label>
                 <label>Repo <input id="repo" value="resources" /></label>
                 <label>Branch <input id="branch" value="main" /></label>
-                <button id="load">Load</button>
+                <button id="load" class="btn has-tip"
+                    aria-label="Reload the tree with the Owner/Repo/Branch above">Load</button>
+                <span class="spacer"></span>
+                <button id="themeBtn" class="btn has-tip"
+                    aria-label="Toggle theme: System → Light → Dark"><span>🌓</span><span class="mode"
+                        id="themeMode">System</span></button>
                 <span class="pill">Unauthenticated · public repos only · 60 req/hr</span>
             </div>
         </div>
@@ -333,10 +576,20 @@
             <div class="toolbar">
                 <strong id="viewerTitle">Viewer</strong>
                 <span id="viewerMeta" class="muted"></span>
-                <a id="openOnGitHub" class="right" href="#" target="_blank" rel="noopener"><svg class="icon">
+                <div class="group">
+                    <button id="copyGhUrl" class="btn has-tip" aria-label="Copy the direct file URL">Copy URL</button>
+                    <button id="copyRaw" class="btn has-tip"
+                        aria-label="Copy the raw file to clipboard (images paste into chat; text copies as text)">Copy
+                        Raw</button>
+                    <a id="downloadBtn" class="btn has-tip" aria-label="Download the raw file" href="#"
+                        download>Download</a>
+                </div>
+                <a id="openOnGitHub" class="right btn has-tip" aria-label="Open this file on GitHub" href="#"
+                    target="_blank" rel="noopener"><svg class="icon">
                         <use href="#ext" />
                     </svg> View on GitHub</a>
-                <a id="openRaw" href="#" target="_blank" rel="noopener"><svg class="icon">
+                <a id="openRaw" class="btn has-tip" aria-label="Open raw file in a new tab" href="#" target="_blank"
+                    rel="noopener"><svg class="icon">
                         <use href="#raw" />
                     </svg> Raw</a>
             </div>
@@ -347,12 +600,24 @@
         </section>
     </main>
 
+    <!-- Lightbox overlay -->
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+        <div class="inner">
+            <button class="close" id="lbClose" aria-label="Close">✕</button>
+            <button class="btn nav prev" id="lbPrev" aria-label="Previous">◀</button>
+            <img id="lbImg" alt="preview" />
+            <button class="btn nav next" id="lbNext" aria-label="Next">▶</button>
+        </div>
+    </div>
+
     <script>
         const els = {
             owner: document.getElementById('owner'),
             repo: document.getElementById('repo'),
             branch: document.getElementById('branch'),
             loadBtn: document.getElementById('load'),
+            themeBtn: document.getElementById('themeBtn'),
+            themeMode: document.getElementById('themeMode'),
             tree: document.getElementById('tree'),
             crumbs: document.getElementById('crumbs'),
             treeCount: document.getElementById('treeCount'),
@@ -361,7 +626,21 @@
             viewerMeta: document.getElementById('viewerMeta'),
             openGH: document.getElementById('openOnGitHub'),
             openRaw: document.getElementById('openRaw'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            copyGhUrl: document.getElementById('copyGhUrl'),
+            copyRaw: document.getElementById('copyRaw'),
+            banner: document.getElementById('banner'),
+            bannerMsg: document.getElementById('bannerMsg'),
+            bannerClose: document.getElementById('bannerClose'),
+            lb: document.getElementById('lightbox'),
+            lbImg: document.getElementById('lbImg'),
+            lbClose: document.getElementById('lbClose'),
+            lbPrev: document.getElementById('lbPrev'),
+            lbNext: document.getElementById('lbNext'),
+            toast: document.createElement('div')
         };
+        els.toast.id = 'toast';
+        document.body.appendChild(els.toast);
 
         const IMAGE_EXT = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".svg"];
         const TEXT_EXT = [".md", ".txt", ".json", ".yml", ".yaml", ".csv", ".js", ".ts", ".css", ".html", ".xml", ".sh", ".py"];
@@ -379,26 +658,20 @@
         }
 
         // --- Safe URL state helpers ---
-        // Some environments (iframes, about:srcdoc) disallow history.replaceState.
-        // We guard it and fall back to updating location.hash so deep links still work when embedded.
         function setQuery(path) {
             const params = new URLSearchParams(location.search);
             if (path) params.set('path', path); else params.delete('path');
             try {
                 if (location.protocol !== 'about:') {
-                    const newUrl = `${location.origin}${location.pathname}?${params}`;
+                    const base = `${location.origin}${location.pathname}`;
+                    const query = params.toString();
+                    const newUrl = query ? `${base}?${query}` : base;
                     history.replaceState(null, '', newUrl);
                     return; // success
                 }
-            } catch (e) {
-                // ignore and fall back to hash below
-            }
-            // Fallback for sandboxed/about:srcdoc contexts
-            if (path) {
-                location.hash = '#path=' + encodeURIComponent(path);
-            } else if (location.hash.startsWith('#path=')) {
-                location.hash = '';
-            }
+            } catch (e) { /* fall back to hash */ }
+            if (path) { location.hash = '#path=' + encodeURIComponent(path); }
+            else if (location.hash.startsWith('#path=')) { location.hash = ''; }
         }
         function getQueryPath() {
             const sp = new URLSearchParams(location.search);
@@ -410,8 +683,19 @@
         }
 
         async function fetchDir(path = "") {
-            const res = await fetch(apiURL(els.owner.value, els.repo.value, path, els.branch.value));
-            if (!res.ok) throw new Error(await res.text());
+            let res;
+            try { res = await fetch(apiURL(els.owner.value, els.repo.value, path, els.branch.value)); }
+            catch (netErr) { showBanner('Network error while contacting GitHub API.'); throw netErr; }
+            if (res.status === 403) {
+                const remaining = res.headers.get('X-RateLimit-Remaining');
+                const reset = res.headers.get('X-RateLimit-Reset');
+                if (remaining === '0' && reset) {
+                    const secs = Math.max(0, parseInt(reset, 10) - Math.floor(Date.now() / 1000));
+                    const mins = Math.ceil(secs / 60);
+                    showBanner(`GitHub API rate limit reached. Try again in about ${mins} minute(s).`);
+                } else { showBanner('Access denied or temporarily rate limited by GitHub API.'); }
+            }
+            if (!res.ok) { throw new Error(await res.text()); }
             return res.json();
         }
 
@@ -444,14 +728,22 @@
             })
         }
 
+        const dirImageCache = new Map(); // parentPath -> [items]
+        function repoKey() { return `${els.owner.value}/${els.repo.value}@${els.branch.value}`; }
+        function openDirsKey() { return `repoTree:${repoKey()}:openDirs`; }
+        function loadOpenDirs() { try { return new Set(JSON.parse(localStorage.getItem(openDirsKey()) || '[]')); } catch { return new Set(); } }
+        function saveOpenDirs(set) { try { localStorage.setItem(openDirsKey(), JSON.stringify(Array.from(set))); } catch { } }
+
         async function buildList(path, container) {
             container.textContent = 'Loading…';
             try {
                 const items = await fetchDir(path);
-                // Sort: folders first, then files (alpha)
                 items.sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type === 'dir' ? -1 : 1));
                 els.treeCount.textContent = `${items.length} items`;
                 container.innerHTML = '';
+
+                const openSet = loadOpenDirs();
+
                 for (const item of items) {
                     if (item.type === 'dir') {
                         const d = document.createElement('details');
@@ -463,22 +755,26 @@
                         inner.textContent = '…';
                         d.appendChild(inner);
                         d.addEventListener('toggle', async () => {
-                            if (d.open && inner.textContent === '…') {
-                                await buildList(item.path, inner);
-                            }
+                            const key = item.path;
+                            const set = loadOpenDirs();
+                            if (d.open) { set.add(key); saveOpenDirs(set); if (inner.textContent === '…') { await buildList(item.path, inner); } }
+                            else { set.delete(key); saveOpenDirs(set); }
                         });
+                        if (openSet.has(item.path)) {
+                            d.open = true; buildList(item.path, inner).catch(() => { });
+                        }
                         container.appendChild(d);
                     } else {
                         const row = document.createElement('div');
                         row.className = 'node file';
-                        row.innerHTML = `<svg class="icon"><use href="${iconFor(item)}"/></svg><a href="#">${item.name}</a><span class="badge muted">${Math.round(item.size / 1024)} KB</span>`;
+                        row.innerHTML = `<svg class="icon"><use href="${iconFor(item)}"/></svg><a href="#">${item.name}</a><span class="badge muted">${Math.max(1, Math.round(item.size / 1024))} KB</span>`;
                         const link = row.querySelector('a');
                         link.onclick = (e) => { e.preventDefault(); openFile(item) };
                         container.appendChild(row);
                     }
                 }
-                // If directory contains many images, show a grid preview below
                 const imgItems = items.filter(it => it.type === 'file' && IMAGE_EXT.some(ext => it.name.toLowerCase().endsWith(ext)));
+                dirImageCache.set(path || '', imgItems);
                 if (imgItems.length >= 4) {
                     const grid = document.createElement('div');
                     grid.className = 'grid';
@@ -501,40 +797,47 @@
                     container.append(label, grid);
                 }
             } catch (err) {
-                container.innerHTML = `<div class="muted" style="padding:8px 12px">${err}</div>`;
+                container.innerHTML = `<div class=\"muted\" style=\"padding:8px 12px\">${err}</div>`;
             }
         }
 
+        async function getSiblingImages(filePath) {
+            const parent = filePath.split('/').slice(0, -1).join('/');
+            if (dirImageCache.has(parent)) return dirImageCache.get(parent);
+            try {
+                const items = await fetchDir(parent);
+                const imgs = items.filter(it => it.type === 'file' && IMAGE_EXT.some(ext => it.name.toLowerCase().endsWith(ext)));
+                dirImageCache.set(parent, imgs); return imgs;
+            }
+            catch { return []; }
+        }
+
+        let lastOpenedItem = null;
         async function openFile(item) {
+            lastOpenedItem = item;
             const owner = els.owner.value, repo = els.repo.value, branch = els.branch.value;
             const raw = rawURL(owner, repo, item.path, branch);
             const gh = ghURL(owner, repo, item.path, branch);
             els.viewerTitle.textContent = item.name;
-            els.viewerMeta.textContent = ` · ${Math.round(item.size / 1024)} KB`;
-            els.openGH.href = gh;
-            els.openRaw.href = raw;
+            els.viewerMeta.textContent = ` · ${Math.max(1, Math.round(item.size / 1024))} KB`;
+            els.openGH.href = gh; els.openRaw.href = raw;
+            els.downloadBtn.href = raw; els.downloadBtn.setAttribute('download', item.name);
             const lower = item.name.toLowerCase();
             if (IMAGE_EXT.some(ext => lower.endsWith(ext))) {
-                els.viewer.innerHTML = `<div class="preview"><img alt="${item.name}" src="${raw}"></div>`;
+                els.viewer.innerHTML = `<div class=\"preview\"><img id=\"previewImg\" alt=\"${item.name}\" src=\"${raw}\"></div>`;
+                const prevImg = document.getElementById('previewImg');
+                prevImg.addEventListener('click', () => openLightbox(item.path));
             } else if (TEXT_EXT.some(ext => lower.endsWith(ext)) && item.size < 1024 * 1024) {
-                // Load text
                 els.viewer.innerHTML = '<div class="empty">Loading text…</div>';
                 try {
-                    const res = await fetch(raw);
-                    const text = await res.text();
-                    const pre = document.createElement('pre');
-                    pre.textContent = text;
-                    els.viewer.innerHTML = '';
-                    els.viewer.appendChild(pre);
-                } catch (e) {
-                    els.viewer.innerHTML = `<div class="empty">Could not load text. <a href="${raw}" target="_blank" rel="noopener">Open raw</a></div>`
+                    const res = await fetch(raw); const text = await res.text();
+                    const pre = document.createElement('pre'); pre.textContent = text; els.viewer.innerHTML = ''; els.viewer.appendChild(pre);
                 }
+                catch (e) { els.viewer.innerHTML = `<div class=\"empty\">Could not load text. <a href=\"${raw}\" target=\"_blank\" rel=\"noopener\">Open raw</a></div>` }
             } else {
-                els.viewer.innerHTML = `<div class="empty">Preview not available. Use <a href="${gh}" target="_blank" rel="noopener">View on GitHub</a> or <a href="${raw}" target="_blank" rel="noopener">open raw</a>.</div>`
+                els.viewer.innerHTML = `<div class=\"empty\">Preview not available. Use <a href=\"${gh}\" target=\"_blank\" rel=\"noopener\">View on GitHub</a> or <a href=\"${raw}\" target=\"_blank\" rel=\"noopener\">open raw</a>.</div>`
             }
-            // keep query/hash in sync (safe across sandboxed contexts)
             setQuery(item.path);
-            // ensure viewer visible on mobile
             document.querySelector('section.panel:nth-of-type(2)').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -542,56 +845,166 @@
             renderCrumbs(path);
             els.tree.innerHTML = '';
             await buildList(path, els.tree);
-            // if a file path is given, open it after listing parent dir
             const itemName = path.split('/').pop();
             const isMaybeFile = itemName && itemName.includes('.') && !path.endsWith('/');
             if (isMaybeFile) {
                 try {
                     const parent = path.split('/').slice(0, -1).join('/');
                     const items = await fetchDir(parent);
-                    const found = items.find(i => i.path === path);
-                    if (found) openFile(found);
+                    const found = items.find(i => i.path === path); if (found) openFile(found);
                 } catch { }
             }
         }
 
+        function showBanner(msg) { els.bannerMsg.textContent = msg; els.banner.style.display = 'block'; }
+        function showToast(msg) { els.toast.textContent = msg; els.toast.classList.add('show'); clearTimeout(showToast._t); showToast._t = setTimeout(() => els.toast.classList.remove('show'), 1500); }
+
+        // Copied badge helper
+        function popBadge(el, text = 'Copied!') {
+            const span = document.createElement('span'); span.className = 'pop'; span.textContent = text; el.appendChild(span);
+            requestAnimationFrame(() => span.classList.add('show'));
+            setTimeout(() => { span.classList.remove('show'); setTimeout(() => span.remove(), 200); }, 900);
+        }
+
+        // ----- Clipboard helpers (robust to sandbox/permissions) -----
+        function canUseAsyncClipboard() {
+            return !!(window.isSecureContext && navigator.clipboard && typeof navigator.clipboard.writeText === 'function');
+        }
+        async function copyText(text) {
+            // Try Async Clipboard API
+            if (canUseAsyncClipboard()) {
+                try { await navigator.clipboard.writeText(text); return true; }
+                catch (e) { /* fall through to fallback */ }
+            }
+            // Fallback: execCommand on a hidden textarea (text only)
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '-9999px';
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); return true;
+            } catch (e) { return false; }
+        }
+        function canWriteBinaryClipboard() {
+            return !!(window.isSecureContext && navigator.clipboard && window.ClipboardItem);
+        }
+
+        // Theme
+        const THEME_KEY = 'repoTree:theme';
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+        function applyTheme(mode) { const m = mode === 'system' ? (prefersDark && prefersDark.matches ? 'dark' : 'light') : mode; document.documentElement.setAttribute('data-theme', m); els.themeMode.textContent = mode.charAt(0).toUpperCase() + mode.slice(1); }
+        function getTheme() { return localStorage.getItem(THEME_KEY) || 'system'; }
+        function setTheme(mode) { localStorage.setItem(THEME_KEY, mode); applyTheme(mode); }
+
+        // Self-tests (optional)
         function runSelfTests() {
-            // Minimal tests for safe state helpers. Run with ?selftest=1
             const results = [];
             const prevHash = location.hash;
-            try {
-                setQuery('test/path.png');
-                const got = getQueryPath();
-                results.push(['set/get path roundtrip', got === 'test/path.png', got]);
-            } catch (e) {
-                results.push(['setQuery did not throw', false, String(e)]);
-            } finally {
-                // cleanup
-                if (prevHash !== location.hash) location.hash = prevHash;
-                try { if (location.protocol !== 'about:') history.replaceState(null, '', `${location.origin}${location.pathname}${location.search}`); } catch { }
-            }
-            console.group('Self-tests');
-            for (const [name, ok, detail] of results) {
-                if (ok) console.log('✔', name); else console.error('✘', name, 'detail:', detail);
-            }
-            console.groupEnd();
+            try { setQuery('test/path.png'); const got = getQueryPath(); results.push(['set/get path roundtrip', got === 'test/path.png', got]); }
+            catch (e) { results.push(['setQuery did not throw', false, String(e)]); }
+            finally { if (prevHash !== location.hash) location.hash = prevHash; }
+            const set = loadOpenDirs(); const before = set.size; set.add('foo/bar'); saveOpenDirs(set); const after = loadOpenDirs().has('foo/bar');
+            results.push(['openDirs persistence', after === true, `before=${before}`]);
+            // Clipboard guard tests (do not actually write)
+            results.push(['canUseAsyncClipboard is boolean', typeof canUseAsyncClipboard() === 'boolean', canUseAsyncClipboard()]);
+            results.push(['canWriteBinaryClipboard is boolean', typeof canWriteBinaryClipboard() === 'boolean', canWriteBinaryClipboard()]);
+            const ru = rawURL(els.owner.value, els.repo.value, 'folder/pic.png', els.branch.value);
+            results.push(['rawURL format check', /raw\.githubusercontent\.com\//.test(ru) && /pic\.png$/.test(ru), ru]);
+            console.group('Self-tests'); for (const [name, ok, detail] of results) { if (ok) console.log('✔', name, detail); else console.error('✘', name, 'detail:', detail); } console.groupEnd();
         }
 
         async function boot() {
-            // Initialize from query params if provided
             const params = new URLSearchParams(location.search);
-            if (params.get('owner')) els.owner.value = params.get('owner');
-            if (params.get('repo')) els.repo.value = params.get('repo');
-            if (params.get('branch')) els.branch.value = params.get('branch');
+            if (params.has('owner')) els.owner.value = params.get('owner');
+            if (params.has('repo')) els.repo.value = params.get('repo');
+            if (params.has('branch')) els.branch.value = params.get('branch');
             const path = getQueryPath();
             if (params.get('selftest') === '1') runSelfTests();
+            applyTheme(getTheme());
             await loadPath(path);
         }
 
+        // Events
         els.loadBtn.addEventListener('click', () => loadPath(''));
         window.addEventListener('popstate', () => loadPath(getQueryPath()));
         window.addEventListener('hashchange', () => loadPath(getQueryPath()));
+        els.bannerClose.addEventListener('click', () => els.banner.style.display = 'none');
 
+        els.themeBtn.addEventListener('click', () => { const cur = getTheme(); const next = cur === 'system' ? 'light' : (cur === 'light' ? 'dark' : 'system'); setTheme(next); showToast('Theme: ' + next); });
+        if (prefersDark) prefersDark.addEventListener('change', () => { if (getTheme() === 'system') applyTheme('system'); });
+
+        // Toolbar actions (with robust clipboard handling)
+        els.copyGhUrl.addEventListener('click', async (e) => {
+            e.preventDefault(); if (!lastOpenedItem) return;
+            // Copy the direct file URL (raw URL), not the GitHub page URL
+            const url = rawURL(els.owner.value, els.repo.value, lastOpenedItem.path, els.branch.value);
+            const ok = await copyText(url);
+            if (ok) { showToast('Copied file URL'); popBadge(els.copyGhUrl); }
+            else { showToast('Clipboard blocked. Unable to copy.'); }
+        });
+
+        els.copyRaw.addEventListener('click', async (e) => {
+            e.preventDefault(); if (!lastOpenedItem) return;
+            const raw = rawURL(els.owner.value, els.repo.value, lastOpenedItem.path, els.branch.value);
+            try {
+                // Prefer binary image/text copy when allowed
+                if (canWriteBinaryClipboard()) {
+                    const res = await fetch(raw);
+                    const blob = await res.blob();
+                    if (blob.type.startsWith('image/')) {
+                        try { await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]); showToast('Image copied'); popBadge(els.copyRaw); return; }
+                        catch (err) { /* fall through to text/url fallback */ }
+                    }
+                    if (blob.type.startsWith('text/')) {
+                        const txt = await blob.text();
+                        const ok = await copyText(txt);
+                        if (ok) { showToast('Text copied'); popBadge(els.copyRaw); return; }
+                    }
+                }
+                // Fallbacks when binary clipboard is disallowed or throws NotAllowedError
+                const okURL = await copyText(raw);
+                if (okURL) { showToast('Copied raw URL (clipboard blocked for data)'); popBadge(els.copyRaw); }
+                else { showToast('Clipboard blocked. Unable to copy.'); }
+            } catch (err) {
+                // Network or other
+                console.error(err);
+                const okURL = await copyText(raw);
+                if (okURL) { showToast('Copied raw URL'); popBadge(els.copyRaw); }
+                else { showToast('Copy failed'); }
+            }
+        });
+
+        els.downloadBtn.addEventListener('click', async (e) => {
+            if (!lastOpenedItem) return; e.preventDefault();
+            try {
+                showToast('Downloading…');
+                const raw = rawURL(els.owner.value, els.repo.value, lastOpenedItem.path, els.branch.value);
+                const res = await fetch(raw, { cache: 'no-store' });
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = lastOpenedItem.name; document.body.appendChild(a); a.click(); a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+            } catch (err) { console.error(err); showToast('Download failed'); }
+        });
+
+        // Lightbox interactions
+        function toggleZoom() { const img = els.lbImg; img.style.transform = img.style.transform ? '' : 'scale(1.5)'; }
+        function closeLightbox() { els.lb.classList.remove('open'); els.lb.setAttribute('aria-hidden', 'true'); document.removeEventListener('keydown', keyNav); }
+        function keyNav(e) { if (e.key === 'Escape') closeLightbox(); if (e.key === 'ArrowLeft') stepLightbox(-1); if (e.key === 'ArrowRight') stepLightbox(1); }
+
+        let lbState = { parent: '', list: [], index: 0 };
+        async function openLightbox(filePath) { const parent = filePath.split('/').slice(0, -1).join('/'); const list = await getSiblingImages(filePath); const idx = Math.max(0, list.findIndex(x => x.path === filePath)); lbState = { parent, list, index: idx }; updateLightbox(); els.lb.classList.add('open'); els.lb.setAttribute('aria-hidden', 'false'); document.addEventListener('keydown', keyNav); }
+        function stepLightbox(delta) { if (!lbState.list.length) return; lbState.index = (lbState.index + delta + lbState.list.length) % lbState.list.length; updateLightbox(); }
+        function updateLightbox() { const cur = lbState.list[lbState.index]; if (!cur) return; els.lbImg.src = rawURL(els.owner.value, els.repo.value, cur.path, els.branch.value); els.lbImg.alt = cur.name; }
+        els.lbClose.addEventListener('click', closeLightbox);
+        els.lbPrev.addEventListener('click', () => stepLightbox(-1));
+        els.lbNext.addEventListener('click', () => stepLightbox(1));
+        els.lbImg.addEventListener('click', toggleZoom);
+        els.lb.addEventListener('click', (e) => { if (e.target === els.lb) closeLightbox(); });
+
+        // expose for preview image click
+        window.openLightbox = openLightbox;
+
+        // GO
         boot();
     </script>
 </body>
