@@ -1,21 +1,24 @@
-# GitHub Repo Tree Browser (GitHub Pages)
+# Resources · Repo Browser (GitHub Pages)
 
 A single-file, client-only explorer for browsing a public GitHub repository as a collapsible tree on **GitHub Pages**.
-It previews images inline, shows small text files, and links to **Raw** / **View on GitHub**.
+It previews images inline, shows small text files, and gives you one-click **raw**, **CDN**, and **GitHub** links.
 
-> **No server or token required.** Uses the public GitHub Contents API with unauthenticated requests.
+> **No server required.** Uses the public GitHub Contents API; works unauthenticated, or with an optional Personal Access Token kept entirely in your browser.
 
 ## Features
 
-* 🗂️ Collapsible directory tree (lazy-loads subfolders)
-* 🖼️ Inline image preview (PNG, JPG, GIF, WEBP, AVIF, SVG)
+* 🗂️ Collapsible directory tree (lazy-loads subfolders, remembers expanded state)
+* 🔎 Live filter for the current folder (Esc clears)
+* 🖼️ Inline image preview (PNG, JPG, GIF, WEBP, AVIF, SVG) + lightbox with keyboard nav
 * 📄 Text preview for small files (≤ \~1 MB; md/txt/json/yml/csv/js/ts/css/html/xml/sh/py)
 * 🧭 Breadcrumb navigation
 * 🔗 Deep linking to a specific file or folder (`?path=...`)
-
   * **Safe fallback** when embedded/sandboxed: uses `#path=...` if the environment disallows `history.replaceState`
-* 🔍 “View on GitHub” and “Raw” quick links
+* 📋 One-click copy of **raw URL**, **jsDelivr CDN URL**, or raw bytes (image/text)
+* 🌗 Light / Dark / System theme toggle (persisted)
+* 🔑 Optional GitHub PAT (browser-only) to lift the rate limit from 60 → 5000 req/hr
 * ⚙️ Switch owner / repo / branch from the header controls
+* 📣 Open Graph + Twitter card meta tags for nicer link previews
 
 ## Live usage
 
@@ -54,6 +57,7 @@ The header has editable fields:
 * **Owner** (default: `MichalAFerber`)
 * **Repo** (default: `resources`)
 * **Branch** (default: `main`)
+* **Token** (optional GitHub PAT; see [Authentication](#authentication))
 * **Load** (reloads the tree with the new settings)
 
 These can also be set via URL parameters:
@@ -81,12 +85,43 @@ These can also be set via URL parameters:
 * **Text:** MD, TXT, JSON, YML/YAML, CSV, JS/TS, CSS, HTML, XML, SH, PY (≤ \~1 MB)
 * **Other/big files:** direct **Raw** and **View on GitHub** links
 
+## Copying URLs
+
+Three buttons on the toolbar:
+
+| Button     | What it copies                                                                 | When to use                                            |
+| ---------- | ------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| Copy URL   | `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`             | Direct file URL, served by GitHub                      |
+| Copy CDN   | `https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}`                   | Faster, cached embedding (blogs, README images, sites) |
+| Copy Raw   | The actual bytes (image → clipboard image, text → clipboard text)              | Pasting into chat / docs                               |
+
+If your browser blocks binary clipboard writes (sandboxed contexts, non-HTTPS), **Copy Raw** falls back to copying the raw URL.
+
+## Filtering
+
+Type into the **Filter this folder…** box at the top of the tree to narrow visible items in the current folder by name. Press **Esc** to clear. The filter resets automatically when you navigate to another folder.
+
+## Authentication
+
+By default the app calls the GitHub API anonymously, which is capped at **\~60 requests/hour per IP**.
+
+Optionally, paste a GitHub **Personal Access Token** (fine-grained or classic; only `public_repo` read scope is needed) into the **Token** field in the header to raise the cap to **5000 req/hr**. The token:
+
+* Is stored only in your browser's `localStorage` under the key `repoTree:pat`
+* Is sent only as an `Authorization: Bearer …` header to `api.github.com`
+* Is never written into URLs, query strings, history, or anywhere shareable
+
+> **Security note:** anyone with access to your browser profile can read this token. Use a low-scope, easily-revocable PAT, and clear the field when you're done if you share the device.
+
+A 401 response (invalid/expired token) shows a dismiss-able banner so you know to clear or replace it.
+
 ## Limits & notes
 
-* **Public repos only** (no token used). Private repos would require a server or careful token handling (not recommended client-side).
-* **Rate limit:** \~60 requests/hour per IP (unauthenticated). The UI is efficient, but very heavy browsing may hit the limit.
+* **Public repos only.** Private repos technically work if your PAT has access, but the app is designed for public browsing.
+* **Rate limit:** \~60 requests/hour per IP unauthenticated; 5000/hr with a PAT.
 * **Large text files:** Not previewed; use **Raw** link.
 * **Symlinks / submodules:** Not resolved (mirrors GitHub API behavior).
+* **jsDelivr cache:** CDN URLs may be cached up to ~12 hours. Use the raw URL if you need an instant update.
 
 ## Deep-linking & embedding
 
@@ -101,9 +136,7 @@ You can run a small browser-console self-test of the URL state helpers:
 https://<your-pages-url>/?selftest=1
 ```
 
-Open the dev console to see:
-
-* `✔ set/get path roundtrip` if the helpers function correctly in your environment.
+Open the dev console to see roundtrip checks for URL state, open-folder persistence, clipboard capability detection, and that `rawURL` / `ghURL` / `cdnURL` correctly percent-encode tricky path segments (e.g. spaces, `&`).
 
 ## Troubleshooting
 
@@ -116,15 +149,16 @@ Open the dev console to see:
 
 ## Customization ideas
 
-* Add a lightbox for image previews
-* Remember expanded folders in `localStorage`
-* Filter/search within the current folder
-* Keyboard navigation (↑/↓/←/→, Enter)
+* Recursive (deep) filter that searches across all loaded subfolders
+* Keyboard navigation (↑/↓/←/→, Enter) for the tree
+* Bulk-copy raw/CDN URLs from a multi-select on the thumbnail grid
+* Recently-copied history pinned to the footer
 
 ## Security
 
-* No OAuth/token usage; only public API endpoints (`/repos/:owner/:repo/contents/...`) and `raw.githubusercontent.com` are called.
+* No OAuth flow; only `api.github.com`, `raw.githubusercontent.com`, and `cdn.jsdelivr.net` are called.
 * All requests are **read-only**.
+* If a PAT is provided it is stored only in `localStorage` and sent only as an `Authorization` header to `api.github.com` — never to jsDelivr or anywhere else. See the [Authentication](#authentication) section for the trade-off.
 
 ## License
 
