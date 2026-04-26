@@ -5,80 +5,135 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- avoid favicon 404 in static hosting -->
     <link rel="icon" href="favicon.ico">
-    <title>GitHub Repo Tree Browser</title>
+    <title>Resources · Repo Browser</title>
+    <meta name="description"
+        content="Browse, preview, and copy raw or CDN URLs from a public GitHub repo — single-page, no server required." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Resources · Repo Browser" />
+    <meta property="og:description"
+        content="Browse, preview, and copy raw or CDN URLs from a public GitHub repo." />
+    <meta property="og:site_name" content="MichalAFerber / resources" />
+    <meta property="og:url" content="https://michalferber.github.io/resources/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Resources · Repo Browser" />
+    <meta name="twitter:description"
+        content="Browse, preview, and copy raw or CDN URLs from a public GitHub repo." />
     <style>
-        /* THEME TOKENS */
         :root {
-            --bg: #121212;
-            --card: #1b1b1b;
-            --ink: #ededed;
-            --muted: #a0a0a0;
-            --accent: #121212;
-            --line: #2a2a2a;
-            --warn: #e9b949;
-            --control: #1a1a1a
+            color-scheme: dark;
+            --bg: #0b0d12;
+            --bg-grad: radial-gradient(1200px 600px at 10% -10%, rgba(129, 140, 248, .14), transparent 60%),
+                radial-gradient(900px 500px at 110% 0%, rgba(192, 132, 252, .10), transparent 60%);
+            --card: #141823;
+            --card-2: #1a1f2c;
+            --ink: #e8ecf2;
+            --ink-soft: #c5cad4;
+            --muted: #8b93a3;
+            --line: #242a39;
+            --line-soft: #1a1f2b;
+            --accent: #818cf8;
+            --accent-2: #c084fc;
+            --accent-ink: #0b0d12;
+            --accent-soft: rgba(129, 140, 248, .14);
+            --accent-ring: rgba(129, 140, 248, .45);
+            --warn: #f5b249;
+            --ok: #34d399;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            --radius: 14px;
+            --radius-sm: 10px;
         }
 
         [data-theme="light"] {
-            --bg: #f7f7f7;
+            color-scheme: light;
+            --bg: #f5f7fb;
+            --bg-grad: radial-gradient(1100px 520px at 10% -20%, rgba(79, 70, 229, .10), transparent 60%),
+                radial-gradient(900px 500px at 110% 0%, rgba(124, 58, 237, .08), transparent 60%);
             --card: #ffffff;
-            --ink: #121212;
-            --muted: #5c647a;
-            --accent: #121212;
-            --line: #e5e5e5;
-            --control: #f2f2f2
+            --card-2: #f3f5fb;
+            --ink: #161a26;
+            --ink-soft: #38405a;
+            --muted: #6b7283;
+            --line: #e3e6ef;
+            --line-soft: #eef0f6;
+            --accent: #4f46e5;
+            --accent-2: #7c3aed;
+            --accent-ink: #ffffff;
+            --accent-soft: rgba(79, 70, 229, .10);
+            --accent-ring: rgba(79, 70, 229, .30);
+            --warn: #b9770e;
+            --ok: #047857;
+            --shadow: 0 8px 28px rgba(20, 24, 40, .08);
         }
 
-        [data-theme="dark"] {
-            --bg: #121212;
-            --card: #1b1b1b;
-            --ink: #ededed;
-            --muted: #a0a0a0;
-            --accent: #121212;
-            --line: #2a2a2a;
-            --control: #1a1a1a
-        }
+        * { box-sizing: border-box }
 
-        * {
-            box-sizing: border-box
-        }
-
-        html,
-        body {
-            height: 100%
-        }
+        html, body { height: 100% }
 
         body {
             margin: 0;
             background: var(--bg);
+            background-image: var(--bg-grad);
+            background-attachment: fixed;
             color: var(--ink);
-            font: 14px/1.5 system-ui, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"
+            font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+                "Apple Color Emoji", "Segoe UI Emoji";
+            -webkit-font-smoothing: antialiased;
         }
 
-        header {
+        a { color: inherit }
+
+        ::selection { background: var(--accent-soft); color: var(--ink) }
+
+        /* HEADER */
+        header.top {
             position: sticky;
             top: 0;
             z-index: 5;
-            background: rgba(18, 18, 18, .85);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--line)
-        }
-
-        [data-theme="light"] header {
-            background: rgba(255, 255, 255, .75)
+            background: color-mix(in oklab, var(--bg) 80%, transparent);
+            backdrop-filter: saturate(140%) blur(10px);
+            -webkit-backdrop-filter: saturate(140%) blur(10px);
+            border-bottom: 1px solid var(--line);
         }
 
         .wrap {
-            max-width: 1100px;
-            margin: auto;
-            padding: 12px 16px
+            width: 100%;
+            margin: 0;
+            padding: 14px clamp(16px, 2.5vw, 32px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand .mark {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: var(--accent-ink);
+            box-shadow: 0 6px 18px var(--accent-ring);
+            flex: none;
         }
 
         h1 {
-            font-size: 18px;
-            margin: 0
+            font-size: 17px;
+            margin: 0;
+            font-weight: 650;
+            letter-spacing: -0.01em;
+        }
+
+        h1 small {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            letter-spacing: 0;
         }
 
         #controls {
@@ -86,71 +141,103 @@
             gap: 10px;
             flex-wrap: wrap;
             align-items: center;
-            margin-top: 8px
+            margin-top: 12px;
         }
 
-        #controls .spacer {
-            flex: 1
-        }
+        #controls .spacer { flex: 1 }
 
-        #themeBtn {
+        #controls label {
             display: inline-flex;
             align-items: center;
-            gap: 6px
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
         }
 
-        #themeBtn .mode {
-            opacity: .8;
-            font-size: 12px
-        }
-
-        input,
-        select,
-        button {
-            background: var(--control);
+        input, select, button, .btn {
+            background: var(--card);
             border: 1px solid var(--line);
             color: var(--ink);
-            border-radius: 10px;
-            padding: 8px 10px
+            border-radius: var(--radius-sm);
+            padding: 8px 11px;
+            font: inherit;
+            transition: border-color .12s ease, background .12s ease, box-shadow .12s ease, transform .04s ease;
         }
 
-        [data-theme="light"] input,
-        [data-theme="light"] select,
-        [data-theme="light"] button {
-            background: #f2f4fb
+        input:hover, select:hover { border-color: color-mix(in oklab, var(--accent) 50%, var(--line)) }
+
+        input:focus, select:focus, button:focus-visible, .btn:focus-visible {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-ring);
         }
 
-        button {
+        input { min-width: 0; width: 13ch }
+        input[type="text"], input:not([type]) { background: var(--card-2) }
+
+        button, .btn {
             cursor: pointer;
-            position: relative
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
         }
 
+        button:hover, .btn:hover {
+            border-color: color-mix(in oklab, var(--accent) 60%, var(--line));
+            background: color-mix(in oklab, var(--accent) 8%, var(--card));
+        }
+
+        button:active, .btn:active { transform: translateY(1px) }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: var(--accent-ink);
+            border-color: transparent;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            filter: brightness(1.08);
+        }
+
+        #themeBtn { gap: 8px }
+        #themeBtn .mode { font-size: 12px; color: var(--muted) }
+
+        .pill {
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: var(--card-2);
+            border: 1px solid var(--line);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* LAYOUT */
         main {
-            max-width: 1100px;
-            margin: 16px auto;
+            width: 100%;
+            margin: 18px 0 28px;
             display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 16px;
-            padding: 0 16px
+            grid-template-columns: minmax(300px, 380px) 1fr;
+            gap: 18px;
+            padding: 0 clamp(16px, 2.5vw, 32px);
         }
 
-        @media (max-width:900px) {
-            main {
-                grid-template-columns: 1fr
-            }
+        @media (max-width: 980px) {
+            main { grid-template-columns: 1fr }
         }
 
         .panel {
             background: var(--card);
             border: 1px solid var(--line);
-            border-radius: 16px;
-            overflow: visible
-        }
-
-        .panel header {
-            position: unset;
-            background: transparent;
-            border: 0
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
         }
 
         .panel .head {
@@ -158,257 +245,339 @@
             align-items: center;
             gap: 8px;
             padding: 12px 14px;
-            border-bottom: 1px solid var(--line)
+            border-bottom: 1px solid var(--line);
+            background: linear-gradient(180deg, var(--card-2), var(--card));
         }
 
+        .panel .head strong { font-size: 13px; letter-spacing: .01em }
+
+        .panel .head { flex-wrap: wrap }
+
+        .filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--card-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            padding: 0 8px;
+            color: var(--muted);
+            transition: border-color .12s ease, box-shadow .12s ease;
+        }
+
+        .filter:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-ring);
+            color: var(--accent);
+        }
+
+        .filter input {
+            border: 0;
+            background: transparent;
+            padding: 6px 0;
+            outline: none;
+            color: var(--ink);
+            min-width: 0;
+            width: 16ch;
+        }
+
+        .filter input::-webkit-search-cancel-button {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        #pat { width: 14ch; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
+
+        #rateLimitPill.is-auth {
+            color: var(--ok);
+            border-color: color-mix(in oklab, var(--ok) 40%, var(--line));
+            background: color-mix(in oklab, var(--ok) 12%, var(--card-2));
+        }
+
+        .right { margin-left: auto }
+
+        .muted { color: var(--muted) }
+
+        /* CRUMBS */
+        .crumbs {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            min-height: 40px;
+        }
+
+        .crumbs a {
+            color: var(--ink-soft);
+            text-decoration: none;
+            padding: 3px 7px;
+            border-radius: 6px;
+        }
+
+        .crumbs a:hover { background: var(--accent-soft); color: var(--ink) }
+
+        .crumbs .sep { color: var(--muted); padding: 0 1px }
+
+        /* TREE */
         .tree {
-            padding: 8px 8px 12px 12px;
+            padding: 8px 8px 12px;
             max-height: 70vh;
-            overflow: auto
+            overflow: auto;
         }
 
-        details {
-            padding-left: 4px
-        }
+        details { padding-left: 0 }
 
-        details>summary {
+        details > summary {
             list-style: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 6px;
-            border-radius: 8px
+            padding: 6px 8px;
+            border-radius: 8px;
+            color: var(--ink-soft);
         }
 
-        details>summary:hover {
-            background: rgba(255, 255, 255, .04)
+        details > summary::-webkit-details-marker { display: none }
+
+        details > summary:hover { background: var(--accent-soft); color: var(--ink) }
+
+        details[open] > summary { color: var(--ink) }
+
+        details > div {
+            padding-left: 14px;
+            border-left: 1px dashed var(--line);
+            margin-left: 12px;
         }
 
         .node {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 6px;
-            border-radius: 8px
+            padding: 6px 8px;
+            border-radius: 8px;
+            color: var(--ink-soft);
         }
 
-        .node:hover {
-            background: rgba(255, 255, 255, .04)
+        .node:hover { background: var(--accent-soft); color: var(--ink) }
+
+        .node.is-active {
+            background: var(--accent-soft);
+            color: var(--ink);
+            outline: 1px solid var(--accent-ring);
         }
 
         .node a {
-            color: var(--ink);
+            color: inherit;
             text-decoration: none;
-            flex: 1
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .muted {
-            color: var(--muted)
-        }
+        .icon { width: 16px; height: 16px; display: inline-block; flex: none }
 
-        .icon {
-            width: 16px;
-            height: 16px;
-            display: inline-block
-        }
-
-        .file {
-            display: flex;
-            align-items: center;
-            gap: 8px
-        }
+        .icon.dir { color: var(--accent) }
+        .icon.img { color: #f59e0b }
+        .icon.txt { color: #34d399 }
+        .icon.code { color: #60a5fa }
 
         .badge {
-            font-size: 11px;
+            font-size: 10px;
             border: 1px solid var(--line);
             color: var(--muted);
             padding: 2px 6px;
-            border-radius: 999px
+            border-radius: 999px;
+            background: var(--card-2);
+            flex: none;
         }
 
-        .crumbs {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--line);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px
-        }
-
-        .crumbs a {
-            color: var(--ink);
-            text-decoration: none
-        }
-
-        .crumbs a:hover {
-            text-decoration: underline
-        }
-
-        .viewer {
-            min-height: 360px
-        }
-
-        .viewer .empty {
-            padding: 20px;
-            color: var(--muted)
-        }
-
-        .viewer .preview {
-            padding: 10px;
-            display: grid;
-            place-items: center
-        }
-
-        .viewer img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 12px;
-            border: 1px solid var(--line)
-        }
-
-        .viewer pre {
-            margin: 0;
-            padding: 14px;
-            overflow: auto;
-            white-space: pre-wrap;
-            word-break: break-word
-        }
-
-        .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--line)
-        }
-
-        .toolbar a,
-        .toolbar button {
-            color: var(--ink);
-            text-decoration: none
-        }
-
-        .toolbar .group {
-            display: flex;
-            gap: 8px;
-            align-items: center
-        }
-
+        /* THUMBNAIL GRID */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 10px;
-            padding: 12px
+            padding: 12px;
         }
 
         .thumb {
-            background: var(--control);
+            background: var(--card-2);
             border: 1px solid var(--line);
             border-radius: 12px;
             padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 8px
+            gap: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
         }
 
-        [data-theme="light"] .thumb {
-            background: #f2f4fb
+        .thumb:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 24px var(--accent-ring);
         }
 
         .thumb img {
             width: 100%;
             aspect-ratio: 1/1;
             object-fit: cover;
-            border-radius: 8px
+            border-radius: 8px;
+            background: #fff;
         }
 
         .thumb .name {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--muted);
-            word-break: break-all
+            word-break: break-all;
+            line-height: 1.35;
+        }
+
+        /* VIEWER */
+        .viewer-panel { min-width: 0 }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--line);
+            background: linear-gradient(180deg, var(--card-2), var(--card));
+        }
+
+        .toolbar #viewerTitle {
+            font-weight: 600;
+            max-width: 60ch;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .toolbar .group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap }
+
+        .viewer {
+            min-height: 360px;
+            max-height: calc(100vh - 220px);
+            overflow: auto;
+        }
+
+        .viewer .empty {
+            padding: 48px 24px;
+            color: var(--muted);
+            text-align: center;
+            display: grid;
+            place-items: center;
+            gap: 12px;
+            min-height: 360px;
+        }
+
+        .viewer .empty .ico {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent-soft), transparent);
+            border: 1px solid var(--line);
+            display: grid;
+            place-items: center;
+            color: var(--accent);
+        }
+
+        .viewer .preview {
+            padding: 18px;
+            display: grid;
+            place-items: center;
+            background:
+                linear-gradient(45deg, var(--card-2) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--card-2) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--card-2) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--card-2) 75%);
+            background-size: 24px 24px;
+            background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+        }
+
+        .viewer img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            cursor: zoom-in;
+        }
+
+        .viewer pre {
+            margin: 0;
+            padding: 16px 18px;
+            overflow: auto;
+            white-space: pre;
+            font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            color: var(--ink);
         }
 
         .footer {
             padding: 10px 14px;
             border-top: 1px solid var(--line);
             font-size: 12px;
-            color: var(--muted)
+            color: var(--muted);
+            background: var(--card);
         }
 
-        .pill {
-            padding: 2px 6px;
-            border-radius: 6px;
-            background: var(--control);
-            border: 1px solid var(--line);
-            font-size: 11px
-        }
-
-        [data-theme="light"] .pill {
-            background: #f2f4fb
-        }
-
-        .right {
-            margin-left: auto
-        }
-
-        /* Toast */
+        /* TOAST */
         #toast {
             position: fixed;
-            right: 16px;
-            bottom: 16px;
+            right: 18px;
+            bottom: 18px;
             z-index: 100;
             background: var(--card);
             border: 1px solid var(--line);
             color: var(--ink);
-            padding: 10px 12px;
-            border-radius: 10px;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+            padding: 10px 14px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
             opacity: 0;
             transform: translateY(8px);
-            transition: opacity .15s ease, transform .15s ease
+            transition: opacity .18s ease, transform .18s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        #toast.show {
-            opacity: 1;
-            transform: translateY(0)
+        #toast.show { opacity: 1; transform: translateY(0) }
+
+        #toast .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--ok);
+            box-shadow: 0 0 0 4px color-mix(in oklab, var(--ok) 25%, transparent);
         }
 
-        /* Banner */
+        /* BANNER */
         .banner {
             display: none;
-            gap: 10px;
-            align-items: flex-start;
-            background: #2a1f07;
-            color: #fff;
-            border-bottom: 1px solid #4a360c
+            background: color-mix(in oklab, var(--warn) 18%, var(--card));
+            border-bottom: 1px solid color-mix(in oklab, var(--warn) 35%, var(--line));
+            color: var(--ink);
         }
 
-        .banner .wrap {
-            display: flex;
-            gap: 12px;
-            align-items: center
-        }
+        .banner .wrap { display: flex; gap: 12px; align-items: center }
+        .banner .warn { color: var(--warn); font-weight: 700 }
 
-        .banner .warn {
-            color: var(--warn)
-        }
-
-        .banner button {
-            background: #3a2b08
-        }
-
-        /* Lightbox */
+        /* LIGHTBOX */
         .lightbox {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, .85);
+            background: rgba(8, 10, 16, .92);
             display: none;
-            z-index: 50
+            z-index: 50;
+            backdrop-filter: blur(6px);
         }
 
-        .lightbox.open {
-            display: flex
-        }
+        .lightbox.open { display: flex }
 
         .lightbox .inner {
             position: relative;
@@ -416,58 +585,36 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            height: 100%
+            height: 100%;
         }
 
         .lightbox img {
             max-width: 90vw;
             max-height: 90vh;
-            transition: transform .2s ease
+            transition: transform .2s ease;
+            border-radius: 12px;
+            background: #fff;
         }
 
-        .lightbox .close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: #111;
-            border: 1px solid #333;
+        .lightbox .close, .lightbox .nav button {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .16);
+            color: #fff;
             border-radius: 999px;
-            padding: 8px 10px;
-            cursor: pointer
+            width: 40px; height: 40px;
+            display: grid; place-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
         }
 
-        .lightbox .nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            gap: 8px
-        }
+        .lightbox .close:hover, .lightbox .nav button:hover { background: rgba(255, 255, 255, .16) }
 
-        .lightbox .prev {
-            left: 16px
-        }
+        .lightbox .close { position: absolute; top: 18px; right: 18px }
+        .lightbox .nav { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; display: flex; justify-content: space-between; padding: 0 18px; pointer-events: none }
+        .lightbox .nav button { pointer-events: auto }
 
-        .lightbox .next {
-            right: 16px
-        }
-
-        .btn {
-            background: var(--control);
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            padding: 6px 10px;
-            cursor: pointer
-        }
-
-        [data-theme="light"] .btn {
-            background: #f2f4fb
-        }
-
-        /* Hover help tooltip (no JS) */
-        .has-tip {
-            position: relative
-        }
+        /* TOOLTIPS (no JS) */
+        .has-tip { position: relative }
 
         .has-tip[aria-label]::after {
             content: attr(aria-label);
@@ -478,37 +625,44 @@
             background: var(--card);
             color: var(--ink);
             border: 1px solid var(--line);
-            padding: 6px 8px;
+            padding: 6px 9px;
             border-radius: 8px;
             white-space: nowrap;
             opacity: 0;
             pointer-events: none;
             transition: opacity .12s ease;
-            z-index: 20
+            z-index: 20;
+            font-size: 11.5px;
+            box-shadow: var(--shadow);
         }
 
-        .has-tip:hover::after {
-            opacity: 1
-        }
+        .has-tip:hover::after, .has-tip:focus-visible::after { opacity: 1 }
 
-        /* Copied badge animation */
+        /* COPIED BADGE */
         .pop {
             position: absolute;
             top: -8px;
             right: -8px;
-            background: var(--accent);
-            color: #fff;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: var(--accent-ink);
             font-size: 10px;
-            padding: 2px 6px;
+            padding: 2px 7px;
             border-radius: 999px;
             opacity: 0;
             transform: translateY(-6px);
-            transition: opacity .15s ease, transform .15s ease
+            transition: opacity .15s ease, transform .15s ease;
+            font-weight: 600;
         }
 
-        .pop.show {
-            opacity: 1;
-            transform: translateY(0)
+        .pop.show { opacity: 1; transform: translateY(0) }
+
+        /* SCROLLBARS */
+        .tree::-webkit-scrollbar, .viewer::-webkit-scrollbar { width: 10px; height: 10px }
+        .tree::-webkit-scrollbar-thumb, .viewer::-webkit-scrollbar-thumb {
+            background: var(--line); border-radius: 999px; border: 2px solid var(--card);
+        }
+        .tree::-webkit-scrollbar-thumb:hover, .viewer::-webkit-scrollbar-thumb:hover {
+            background: color-mix(in oklab, var(--accent) 50%, var(--line));
         }
     </style>
 </head>
@@ -537,76 +691,120 @@
         <symbol id="raw" viewBox="0 0 24 24">
             <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
         </symbol>
+        <symbol id="copy" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M8 7V3h11a2 2 0 012 2v13h-4v3H5a2 2 0 01-2-2V9a2 2 0 012-2h3zm2 0h6a2 2 0 012 2v7h2V5H10v2zM5 9v10h10V9H5z" />
+        </symbol>
+        <symbol id="download" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M12 3v10.59l3.3-3.3 1.4 1.42L12 16.41l-4.7-4.7 1.4-1.42 3.3 3.3V3h2zM5 19h14v2H5v-2z" />
+        </symbol>
+        <symbol id="logo" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm11 0h5v3h-3v2h3v2h-5v-7z" />
+        </symbol>
+        <symbol id="cloud" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.99 5.99 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" />
+        </symbol>
+        <symbol id="search" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M10 2a8 8 0 015.3 14l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1110 2zm0 2a6 6 0 100 12 6 6 0 000-12z" />
+        </symbol>
+        <symbol id="key" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M14 8a4 4 0 11-3.86 5h-2.3l-1.4 1.4-1.4-1.4-1.4 1.4-2-2 5.7-5.7A4 4 0 0114 4a4 4 0 010 4zm0-2a2 2 0 100 4 2 2 0 000-4z" />
+        </symbol>
     </svg>
 
     <div class="banner" id="banner">
         <div class="wrap"><span class="warn">⚠</span>
-            <div id="bannerMsg">API rate limit or network issue.</div><button class="btn"
-                id="bannerClose">Dismiss</button>
+            <div id="bannerMsg">API rate limit or network issue.</div>
+            <button class="btn right" id="bannerClose">Dismiss</button>
         </div>
     </div>
 
-    <header>
+    <header class="top">
         <div class="wrap">
-            <h1>GitHub Repo Tree Browser</h1>
+            <div class="brand">
+                <span class="mark"><svg class="icon" aria-hidden="true"><use href="#logo" /></svg></span>
+                <h1>Resources<small>Browse, preview, and copy raw URLs from a public GitHub repo</small></h1>
+            </div>
             <div id="controls">
                 <label>Owner <input id="owner" value="MichalAFerber" /></label>
                 <label>Repo <input id="repo" value="resources" /></label>
                 <label>Branch <input id="branch" value="main" /></label>
-                <button id="load" class="btn has-tip"
+                <label class="has-tip"
+                    aria-label="Optional GitHub Personal Access Token. Stored only in your browser localStorage. Lifts the API limit from 60 to 5000 req/hr.">
+                    <svg class="icon" aria-hidden="true"><use href="#key" /></svg>
+                    <input id="pat" type="password" autocomplete="off" spellcheck="false"
+                        placeholder="Token (optional)" />
+                </label>
+                <button id="load" class="btn-primary has-tip"
                     aria-label="Reload the tree with the Owner/Repo/Branch above">Load</button>
                 <span class="spacer"></span>
                 <button id="themeBtn" class="btn has-tip"
-                    aria-label="Toggle theme: System → Light → Dark"><span>🌓</span><span class="mode"
+                    aria-label="Toggle theme: System → Light → Dark"><span aria-hidden="true">🌓</span><span class="mode"
                         id="themeMode">System</span></button>
-                <span class="pill">Unauthenticated · public repos only · 60 req/hr</span>
+                <span id="rateLimitPill" class="pill"
+                    title="Public repos only · ~60 requests/hour without a token">Unauthenticated · 60 req/hr</span>
             </div>
         </div>
     </header>
 
     <main>
         <section class="panel" id="treePanel">
-            <div class="head"><strong>Folders & Files</strong><span id="treeCount" class="right muted"></span></div>
+            <div class="head">
+                <strong>Folders &amp; Files</strong>
+                <span id="treeCount" class="muted"></span>
+                <label class="filter right">
+                    <svg class="icon" aria-hidden="true"><use href="#search" /></svg>
+                    <input id="filter" type="search" placeholder="Filter this folder…" autocomplete="off" />
+                </label>
+            </div>
             <nav class="crumbs" id="crumbs"></nav>
             <div class="tree" id="tree"></div>
-            <div class="footer">Tip: click folders to expand; click files to preview or open raw.</div>
+            <div class="footer">Tip: click a folder to expand · click a file to preview · use Copy URL or Copy CDN for embeddable links.</div>
         </section>
 
-        <section class="panel">
+        <section class="panel viewer-panel">
             <div class="toolbar">
                 <strong id="viewerTitle">Viewer</strong>
                 <span id="viewerMeta" class="muted"></span>
-                <div class="group">
-                    <button id="copyGhUrl" class="btn has-tip" aria-label="Copy the direct file URL">Copy URL</button>
+                <div class="group right">
+                    <button id="copyGhUrl" class="btn-primary has-tip" aria-label="Copy the raw.githubusercontent.com URL"><svg class="icon"><use href="#copy" /></svg> Copy URL</button>
+                    <button id="copyCdn" class="btn has-tip"
+                        aria-label="Copy a jsDelivr CDN URL — faster and better-cached than raw.githubusercontent.com"><svg class="icon"><use href="#cloud" /></svg> Copy CDN</button>
                     <button id="copyRaw" class="btn has-tip"
-                        aria-label="Copy the raw file to clipboard (images paste into chat; text copies as text)">Copy
-                        Raw</button>
+                        aria-label="Copy raw bytes (image → clipboard, text → clipboard)"><svg class="icon"><use href="#copy" /></svg> Copy Raw</button>
                     <a id="downloadBtn" class="btn has-tip" aria-label="Download the raw file" href="#"
-                        download>Download</a>
+                        download><svg class="icon"><use href="#download" /></svg> Download</a>
+                    <a id="openOnGitHub" class="btn has-tip" aria-label="Open this file on GitHub" href="#"
+                        target="_blank" rel="noopener"><svg class="icon"><use href="#ext" /></svg> GitHub</a>
+                    <a id="openRaw" class="btn has-tip" aria-label="Open raw file in a new tab" href="#" target="_blank"
+                        rel="noopener"><svg class="icon"><use href="#raw" /></svg> Raw</a>
                 </div>
-                <a id="openOnGitHub" class="right btn has-tip" aria-label="Open this file on GitHub" href="#"
-                    target="_blank" rel="noopener"><svg class="icon">
-                        <use href="#ext" />
-                    </svg> View on GitHub</a>
-                <a id="openRaw" class="btn has-tip" aria-label="Open raw file in a new tab" href="#" target="_blank"
-                    rel="noopener"><svg class="icon">
-                        <use href="#raw" />
-                    </svg> Raw</a>
             </div>
             <div class="viewer" id="viewer">
-                <div class="empty">Select a file to preview. Images render inline; text files up to ~1 MB are shown;
-                    others offer a raw/download link.</div>
+                <div class="empty">
+                    <div class="ico"><svg class="icon" style="width:28px;height:28px"><use href="#file" /></svg></div>
+                    <div>
+                        <strong>Select a file to preview</strong><br>
+                        <span class="muted">Images render inline · text up to ~1 MB is shown · everything else gets raw + download.</span>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Lightbox overlay -->
     <div class="lightbox" id="lightbox" aria-hidden="true">
         <div class="inner">
             <button class="close" id="lbClose" aria-label="Close">✕</button>
-            <button class="btn nav prev" id="lbPrev" aria-label="Previous">◀</button>
+            <div class="nav">
+                <button id="lbPrev" aria-label="Previous">◀</button>
+                <button id="lbNext" aria-label="Next">▶</button>
+            </div>
             <img id="lbImg" alt="preview" />
-            <button class="btn nav next" id="lbNext" aria-label="Next">▶</button>
         </div>
     </div>
 
@@ -628,7 +826,11 @@
             openRaw: document.getElementById('openRaw'),
             downloadBtn: document.getElementById('downloadBtn'),
             copyGhUrl: document.getElementById('copyGhUrl'),
+            copyCdn: document.getElementById('copyCdn'),
             copyRaw: document.getElementById('copyRaw'),
+            pat: document.getElementById('pat'),
+            rateLimitPill: document.getElementById('rateLimitPill'),
+            filter: document.getElementById('filter'),
             banner: document.getElementById('banner'),
             bannerMsg: document.getElementById('bannerMsg'),
             bannerClose: document.getElementById('bannerClose'),
@@ -644,20 +846,26 @@
 
         const IMAGE_EXT = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".svg"];
         const TEXT_EXT = [".md", ".txt", ".json", ".yml", ".yaml", ".csv", ".js", ".ts", ".css", ".html", ".xml", ".sh", ".py"];
+        const CODE_EXT = [".js", ".ts", ".css", ".html", ".xml", ".sh", ".py", ".json", ".yml", ".yaml"];
 
+        function encPath(path) {
+            return path.split('/').map(encodeURIComponent).join('/');
+        }
         function apiURL(owner, repo, path, branch) {
-            const p = path ? `/${encodeURIComponent(path).replace(/%2F/g, '/')}` : '';
+            const p = path ? `/${encPath(path)}` : '';
             return `https://api.github.com/repos/${owner}/${repo}/contents${p}?ref=${encodeURIComponent(branch)}`;
         }
         function rawURL(owner, repo, path, branch) {
-            return `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(branch)}/${path}`;
+            return `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(branch)}/${encPath(path)}`;
+        }
+        function cdnURL(owner, repo, path, branch) {
+            return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${encodeURIComponent(branch)}/${encPath(path)}`;
         }
         function ghURL(owner, repo, path, branch) {
             const base = `https://github.com/${owner}/${repo}`;
-            return path ? `${base}/blob/${encodeURIComponent(branch)}/${path}` : base;
+            return path ? `${base}/blob/${encodeURIComponent(branch)}/${encPath(path)}` : base;
         }
 
-        // --- Safe URL state helpers ---
         function setQuery(path) {
             const params = new URLSearchParams(location.search);
             if (path) params.set('path', path); else params.delete('path');
@@ -667,7 +875,7 @@
                     const query = params.toString();
                     const newUrl = query ? `${base}?${query}` : base;
                     history.replaceState(null, '', newUrl);
-                    return; // success
+                    return;
                 }
             } catch (e) { /* fall back to hash */ }
             if (path) { location.hash = '#path=' + encodeURIComponent(path); }
@@ -682,10 +890,32 @@
             return '';
         }
 
+        const PAT_KEY = 'repoTree:pat';
+        function getPat() { try { return localStorage.getItem(PAT_KEY) || ''; } catch { return ''; } }
+        function setPat(v) {
+            try { if (v) localStorage.setItem(PAT_KEY, v); else localStorage.removeItem(PAT_KEY); } catch { }
+            updateRateLimitPill();
+        }
+        function authHeaders() {
+            const t = getPat();
+            return t ? { Authorization: `Bearer ${t}`, Accept: 'application/vnd.github+json' } : {};
+        }
+        function updateRateLimitPill() {
+            const has = !!getPat();
+            els.rateLimitPill.textContent = has ? 'Authenticated · 5000 req/hr' : 'Unauthenticated · 60 req/hr';
+            els.rateLimitPill.classList.toggle('is-auth', has);
+            els.rateLimitPill.title = has
+                ? 'Token loaded from your browser localStorage'
+                : 'Public repos only · ~60 requests/hour without a token';
+        }
+
         async function fetchDir(path = "") {
             let res;
-            try { res = await fetch(apiURL(els.owner.value, els.repo.value, path, els.branch.value)); }
+            try { res = await fetch(apiURL(els.owner.value, els.repo.value, path, els.branch.value), { headers: authHeaders() }); }
             catch (netErr) { showBanner('Network error while contacting GitHub API.'); throw netErr; }
+            if (res.status === 401) {
+                showBanner('GitHub API rejected the token (401). Clear it or use a valid PAT.');
+            }
             if (res.status === 403) {
                 const remaining = res.headers.get('X-RateLimit-Remaining');
                 const reset = res.headers.get('X-RateLimit-Reset');
@@ -699,11 +929,13 @@
             return res.json();
         }
 
-        function iconFor(item) {
-            if (item.type === 'dir') return '#dir';
+        function iconSymbolFor(item) {
+            if (item.type === 'dir') return { id: '#dir', cls: 'icon dir' };
             const name = item.name.toLowerCase();
-            if (IMAGE_EXT.some(ext => name.endsWith(ext))) return '#img';
-            return '#file';
+            if (IMAGE_EXT.some(ext => name.endsWith(ext))) return { id: '#img', cls: 'icon img' };
+            if (CODE_EXT.some(ext => name.endsWith(ext))) return { id: '#file', cls: 'icon code' };
+            if (TEXT_EXT.some(ext => name.endsWith(ext))) return { id: '#file', cls: 'icon txt' };
+            return { id: '#file', cls: 'icon' };
         }
 
         function renderCrumbs(path) {
@@ -713,22 +945,25 @@
             const home = document.createElement('a');
             home.innerHTML = `<svg class="icon"><use href="#home"/></svg>`;
             home.href = '#';
+            home.setAttribute('aria-label', 'Repository root');
             home.onclick = (e) => { e.preventDefault(); loadPath(''); }
             els.crumbs.appendChild(home);
             parts.forEach((seg, i) => {
                 const span = document.createElement('span');
-                span.textContent = ' / ';
+                span.className = 'sep';
+                span.textContent = '/';
                 els.crumbs.appendChild(span);
                 acc += (i ? '/' : '') + seg;
                 const a = document.createElement('a');
                 a.textContent = seg;
                 a.href = '#';
-                a.onclick = (e) => { e.preventDefault(); loadPath(acc); }
+                const target = acc;
+                a.onclick = (e) => { e.preventDefault(); loadPath(target); }
                 els.crumbs.appendChild(a);
             })
         }
 
-        const dirImageCache = new Map(); // parentPath -> [items]
+        const dirImageCache = new Map();
         function repoKey() { return `${els.owner.value}/${els.repo.value}@${els.branch.value}`; }
         function openDirsKey() { return `repoTree:${repoKey()}:openDirs`; }
         function loadOpenDirs() { try { return new Set(JSON.parse(localStorage.getItem(openDirsKey()) || '[]')); } catch { return new Set(); } }
@@ -738,20 +973,24 @@
             container.textContent = 'Loading…';
             try {
                 const items = await fetchDir(path);
+                if (!Array.isArray(items)) {
+                    container.innerHTML = '';
+                    return;
+                }
                 items.sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type === 'dir' ? -1 : 1));
-                els.treeCount.textContent = `${items.length} items`;
+                els.treeCount.textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
                 container.innerHTML = '';
 
                 const openSet = loadOpenDirs();
 
                 for (const item of items) {
+                    const ico = iconSymbolFor(item);
                     if (item.type === 'dir') {
                         const d = document.createElement('details');
                         const s = document.createElement('summary');
-                        s.innerHTML = `<svg class="icon"><use href="${iconFor(item)}"/></svg><span>${item.name}</span>`;
+                        s.innerHTML = `<svg class="${ico.cls}"><use href="${ico.id}"/></svg><span>${item.name}</span>`;
                         d.appendChild(s);
                         const inner = document.createElement('div');
-                        inner.style.paddingLeft = '14px';
                         inner.textContent = '…';
                         d.appendChild(inner);
                         d.addEventListener('toggle', async () => {
@@ -766,8 +1005,9 @@
                         container.appendChild(d);
                     } else {
                         const row = document.createElement('div');
-                        row.className = 'node file';
-                        row.innerHTML = `<svg class="icon"><use href="${iconFor(item)}"/></svg><a href="#">${item.name}</a><span class="badge muted">${Math.max(1, Math.round(item.size / 1024))} KB</span>`;
+                        row.className = 'node';
+                        row.dataset.path = item.path;
+                        row.innerHTML = `<svg class="${ico.cls}"><use href="${ico.id}"/></svg><a href="#">${item.name}</a><span class="badge">${formatSize(item.size)}</span>`;
                         const link = row.querySelector('a');
                         link.onclick = (e) => { e.preventDefault(); openFile(item) };
                         container.appendChild(row);
@@ -778,13 +1018,14 @@
                 if (imgItems.length >= 4) {
                     const grid = document.createElement('div');
                     grid.className = 'grid';
-                    for (const it of imgItems.slice(0, 40)) {
+                    for (const it of imgItems.slice(0, 60)) {
                         const t = document.createElement('a');
                         t.className = 'thumb';
                         t.href = '#';
                         t.onclick = (e) => { e.preventDefault(); openFile(it) };
                         const img = document.createElement('img');
                         img.loading = 'lazy';
+                        img.alt = it.name;
                         img.src = rawURL(els.owner.value, els.repo.value, it.path, els.branch.value);
                         const name = document.createElement('div'); name.className = 'name'; name.textContent = it.name;
                         t.append(img, name);
@@ -793,12 +1034,19 @@
                     const label = document.createElement('div');
                     label.className = 'muted';
                     label.style.padding = '8px 12px 0';
-                    label.textContent = 'Image preview';
+                    label.textContent = `Image preview (${imgItems.length})`;
                     container.append(label, grid);
                 }
             } catch (err) {
-                container.innerHTML = `<div class=\"muted\" style=\"padding:8px 12px\">${err}</div>`;
+                container.innerHTML = `<div class="muted" style="padding:8px 12px">${String(err).slice(0, 240)}</div>`;
             }
+        }
+
+        function formatSize(bytes) {
+            if (!bytes && bytes !== 0) return '';
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
         }
 
         async function getSiblingImages(filePath) {
@@ -819,64 +1067,92 @@
             const raw = rawURL(owner, repo, item.path, branch);
             const gh = ghURL(owner, repo, item.path, branch);
             els.viewerTitle.textContent = item.name;
-            els.viewerMeta.textContent = ` · ${Math.max(1, Math.round(item.size / 1024))} KB`;
+            els.viewerTitle.title = item.path;
+            els.viewerMeta.textContent = ` · ${formatSize(item.size)}`;
             els.openGH.href = gh; els.openRaw.href = raw;
             els.downloadBtn.href = raw; els.downloadBtn.setAttribute('download', item.name);
+
+            document.querySelectorAll('.node.is-active').forEach(n => n.classList.remove('is-active'));
+            const active = document.querySelector(`.node[data-path="${CSS.escape(item.path)}"]`);
+            if (active) active.classList.add('is-active');
+
             const lower = item.name.toLowerCase();
             if (IMAGE_EXT.some(ext => lower.endsWith(ext))) {
-                els.viewer.innerHTML = `<div class=\"preview\"><img id=\"previewImg\" alt=\"${item.name}\" src=\"${raw}\"></div>`;
+                els.viewer.innerHTML = `<div class="preview"><img id="previewImg" alt="${item.name}" src="${raw}"></div>`;
                 const prevImg = document.getElementById('previewImg');
                 prevImg.addEventListener('click', () => openLightbox(item.path));
             } else if (TEXT_EXT.some(ext => lower.endsWith(ext)) && item.size < 1024 * 1024) {
-                els.viewer.innerHTML = '<div class="empty">Loading text…</div>';
+                els.viewer.innerHTML = '<div class="empty"><span class="muted">Loading text…</span></div>';
                 try {
                     const res = await fetch(raw); const text = await res.text();
-                    const pre = document.createElement('pre'); pre.textContent = text; els.viewer.innerHTML = ''; els.viewer.appendChild(pre);
+                    const pre = document.createElement('pre'); pre.textContent = text;
+                    els.viewer.innerHTML = ''; els.viewer.appendChild(pre);
                 }
-                catch (e) { els.viewer.innerHTML = `<div class=\"empty\">Could not load text. <a href=\"${raw}\" target=\"_blank\" rel=\"noopener\">Open raw</a></div>` }
+                catch (e) { els.viewer.innerHTML = `<div class="empty"><span>Could not load text. <a href="${raw}" target="_blank" rel="noopener">Open raw</a></span></div>` }
             } else {
-                els.viewer.innerHTML = `<div class=\"empty\">Preview not available. Use <a href=\"${gh}\" target=\"_blank\" rel=\"noopener\">View on GitHub</a> or <a href=\"${raw}\" target=\"_blank\" rel=\"noopener\">open raw</a>.</div>`
+                els.viewer.innerHTML = `<div class="empty"><div class="ico"><svg class="icon" style="width:28px;height:28px"><use href="#file" /></svg></div><span>Preview not available. <a href="${gh}" target="_blank" rel="noopener">View on GitHub</a> · <a href="${raw}" target="_blank" rel="noopener">Open raw</a></span></div>`
             }
             setQuery(item.path);
-            document.querySelector('section.panel:nth-of-type(2)').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function loadPath(path) {
+            const itemName = path ? path.split('/').pop() : '';
+            const isMaybeFile = itemName && itemName.includes('.') && !path.endsWith('/');
+            const dirPath = isMaybeFile ? path.split('/').slice(0, -1).join('/') : path;
             renderCrumbs(path);
             els.tree.innerHTML = '';
-            await buildList(path, els.tree);
-            const itemName = path.split('/').pop();
-            const isMaybeFile = itemName && itemName.includes('.') && !path.endsWith('/');
+            els.filter.value = '';
+            await buildList(dirPath, els.tree);
+            applyFilter('');
             if (isMaybeFile) {
                 try {
-                    const parent = path.split('/').slice(0, -1).join('/');
-                    const items = await fetchDir(parent);
-                    const found = items.find(i => i.path === path); if (found) openFile(found);
+                    const items = await fetchDir(dirPath);
+                    const found = Array.isArray(items) ? items.find(i => i.path === path) : null;
+                    if (found) openFile(found);
                 } catch { }
             }
         }
 
-        function showBanner(msg) { els.bannerMsg.textContent = msg; els.banner.style.display = 'block'; }
-        function showToast(msg) { els.toast.textContent = msg; els.toast.classList.add('show'); clearTimeout(showToast._t); showToast._t = setTimeout(() => els.toast.classList.remove('show'), 1500); }
+        function applyFilter(query) {
+            const q = (query || '').trim().toLowerCase();
+            for (const el of Array.from(els.tree.children)) {
+                if (!q) { el.style.display = ''; continue; }
+                let label = '';
+                if (el.tagName === 'DETAILS') {
+                    const s = el.querySelector(':scope > summary');
+                    label = s ? s.textContent : '';
+                } else if (el.classList && el.classList.contains('node')) {
+                    label = el.textContent;
+                } else {
+                    el.style.display = 'none';
+                    continue;
+                }
+                el.style.display = label.toLowerCase().includes(q) ? '' : 'none';
+            }
+        }
 
-        // Copied badge helper
+        function showBanner(msg) { els.bannerMsg.textContent = msg; els.banner.style.display = 'block'; }
+        function showToast(msg) {
+            els.toast.innerHTML = `<span class="dot"></span><span>${msg}</span>`;
+            els.toast.classList.add('show');
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(() => els.toast.classList.remove('show'), 1600);
+        }
+
         function popBadge(el, text = 'Copied!') {
             const span = document.createElement('span'); span.className = 'pop'; span.textContent = text; el.appendChild(span);
             requestAnimationFrame(() => span.classList.add('show'));
             setTimeout(() => { span.classList.remove('show'); setTimeout(() => span.remove(), 200); }, 900);
         }
 
-        // ----- Clipboard helpers (robust to sandbox/permissions) -----
         function canUseAsyncClipboard() {
             return !!(window.isSecureContext && navigator.clipboard && typeof navigator.clipboard.writeText === 'function');
         }
         async function copyText(text) {
-            // Try Async Clipboard API
             if (canUseAsyncClipboard()) {
                 try { await navigator.clipboard.writeText(text); return true; }
-                catch (e) { /* fall through to fallback */ }
+                catch (e) { /* fall through */ }
             }
-            // Fallback: execCommand on a hidden textarea (text only)
             try {
                 const ta = document.createElement('textarea');
                 ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '-9999px';
@@ -887,14 +1163,16 @@
             return !!(window.isSecureContext && navigator.clipboard && window.ClipboardItem);
         }
 
-        // Theme
         const THEME_KEY = 'repoTree:theme';
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-        function applyTheme(mode) { const m = mode === 'system' ? (prefersDark && prefersDark.matches ? 'dark' : 'light') : mode; document.documentElement.setAttribute('data-theme', m); els.themeMode.textContent = mode.charAt(0).toUpperCase() + mode.slice(1); }
+        function applyTheme(mode) {
+            const m = mode === 'system' ? (prefersDark && prefersDark.matches ? 'dark' : 'light') : mode;
+            document.documentElement.setAttribute('data-theme', m);
+            els.themeMode.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+        }
         function getTheme() { return localStorage.getItem(THEME_KEY) || 'system'; }
         function setTheme(mode) { localStorage.setItem(THEME_KEY, mode); applyTheme(mode); }
 
-        // Self-tests (optional)
         function runSelfTests() {
             const results = [];
             const prevHash = location.hash;
@@ -903,12 +1181,17 @@
             finally { if (prevHash !== location.hash) location.hash = prevHash; }
             const set = loadOpenDirs(); const before = set.size; set.add('foo/bar'); saveOpenDirs(set); const after = loadOpenDirs().has('foo/bar');
             results.push(['openDirs persistence', after === true, `before=${before}`]);
-            // Clipboard guard tests (do not actually write)
             results.push(['canUseAsyncClipboard is boolean', typeof canUseAsyncClipboard() === 'boolean', canUseAsyncClipboard()]);
             results.push(['canWriteBinaryClipboard is boolean', typeof canWriteBinaryClipboard() === 'boolean', canWriteBinaryClipboard()]);
-            const ru = rawURL(els.owner.value, els.repo.value, 'folder/pic.png', els.branch.value);
-            results.push(['rawURL format check', /raw\.githubusercontent\.com\//.test(ru) && /pic\.png$/.test(ru), ru]);
-            console.group('Self-tests'); for (const [name, ok, detail] of results) { if (ok) console.log('✔', name, detail); else console.error('✘', name, 'detail:', detail); } console.groupEnd();
+            const ru = rawURL('o', 'r', 'folder/Plex Movies&TV.png', 'main');
+            results.push(['rawURL encodes path segments', /Plex%20Movies%26TV\.png$/.test(ru), ru]);
+            const gu = ghURL('o', 'r', 'folder/Plex Movies&TV.png', 'main');
+            results.push(['ghURL encodes path segments', /Plex%20Movies%26TV\.png$/.test(gu), gu]);
+            const cu = cdnURL('o', 'r', 'folder/Plex Movies&TV.png', 'main');
+            results.push(['cdnURL points to jsDelivr', /^https:\/\/cdn\.jsdelivr\.net\/gh\/o\/r@main\//.test(cu) && /Plex%20Movies%26TV\.png$/.test(cu), cu]);
+            console.group('Self-tests');
+            for (const [name, ok, detail] of results) { if (ok) console.log('✔', name, detail); else console.error('✘', name, 'detail:', detail); }
+            console.groupEnd();
         }
 
         async function boot() {
@@ -917,41 +1200,61 @@
             if (params.has('repo')) els.repo.value = params.get('repo');
             if (params.has('branch')) els.branch.value = params.get('branch');
             const path = getQueryPath();
+            els.pat.value = getPat();
+            updateRateLimitPill();
             if (params.get('selftest') === '1') runSelfTests();
             applyTheme(getTheme());
             await loadPath(path);
         }
 
-        // Events
         els.loadBtn.addEventListener('click', () => loadPath(''));
         window.addEventListener('popstate', () => loadPath(getQueryPath()));
         window.addEventListener('hashchange', () => loadPath(getQueryPath()));
         els.bannerClose.addEventListener('click', () => els.banner.style.display = 'none');
 
-        els.themeBtn.addEventListener('click', () => { const cur = getTheme(); const next = cur === 'system' ? 'light' : (cur === 'light' ? 'dark' : 'system'); setTheme(next); showToast('Theme: ' + next); });
+        els.themeBtn.addEventListener('click', () => {
+            const cur = getTheme();
+            const next = cur === 'system' ? 'light' : (cur === 'light' ? 'dark' : 'system');
+            setTheme(next); showToast('Theme: ' + next);
+        });
         if (prefersDark) prefersDark.addEventListener('change', () => { if (getTheme() === 'system') applyTheme('system'); });
 
-        // Toolbar actions (with robust clipboard handling)
         els.copyGhUrl.addEventListener('click', async (e) => {
-            e.preventDefault(); if (!lastOpenedItem) return;
-            // Copy the direct file URL (raw URL), not the GitHub page URL
+            e.preventDefault(); if (!lastOpenedItem) { showToast('Select a file first'); return; }
             const url = rawURL(els.owner.value, els.repo.value, lastOpenedItem.path, els.branch.value);
             const ok = await copyText(url);
-            if (ok) { showToast('Copied file URL'); popBadge(els.copyGhUrl); }
-            else { showToast('Clipboard blocked. Unable to copy.'); }
+            if (ok) { showToast('Copied raw URL'); popBadge(els.copyGhUrl); }
+            else { showToast('Clipboard blocked'); }
+        });
+
+        els.copyCdn.addEventListener('click', async (e) => {
+            e.preventDefault(); if (!lastOpenedItem) { showToast('Select a file first'); return; }
+            const url = cdnURL(els.owner.value, els.repo.value, lastOpenedItem.path, els.branch.value);
+            const ok = await copyText(url);
+            if (ok) { showToast('Copied jsDelivr CDN URL'); popBadge(els.copyCdn); }
+            else { showToast('Clipboard blocked'); }
+        });
+
+        els.pat.addEventListener('change', (e) => {
+            setPat(e.target.value.trim());
+            showToast(getPat() ? 'Token saved (browser only)' : 'Token cleared');
+        });
+
+        els.filter.addEventListener('input', (e) => applyFilter(e.target.value));
+        els.filter.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { els.filter.value = ''; applyFilter(''); }
         });
 
         els.copyRaw.addEventListener('click', async (e) => {
-            e.preventDefault(); if (!lastOpenedItem) return;
+            e.preventDefault(); if (!lastOpenedItem) { showToast('Select a file first'); return; }
             const raw = rawURL(els.owner.value, els.repo.value, lastOpenedItem.path, els.branch.value);
             try {
-                // Prefer binary image/text copy when allowed
                 if (canWriteBinaryClipboard()) {
                     const res = await fetch(raw);
                     const blob = await res.blob();
                     if (blob.type.startsWith('image/')) {
                         try { await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]); showToast('Image copied'); popBadge(els.copyRaw); return; }
-                        catch (err) { /* fall through to text/url fallback */ }
+                        catch (err) { /* fall through */ }
                     }
                     if (blob.type.startsWith('text/')) {
                         const txt = await blob.text();
@@ -959,12 +1262,10 @@
                         if (ok) { showToast('Text copied'); popBadge(els.copyRaw); return; }
                     }
                 }
-                // Fallbacks when binary clipboard is disallowed or throws NotAllowedError
                 const okURL = await copyText(raw);
-                if (okURL) { showToast('Copied raw URL (clipboard blocked for data)'); popBadge(els.copyRaw); }
-                else { showToast('Clipboard blocked. Unable to copy.'); }
+                if (okURL) { showToast('Copied raw URL (data clipboard blocked)'); popBadge(els.copyRaw); }
+                else { showToast('Clipboard blocked'); }
             } catch (err) {
-                // Network or other
                 console.error(err);
                 const okURL = await copyText(raw);
                 if (okURL) { showToast('Copied raw URL'); popBadge(els.copyRaw); }
@@ -986,13 +1287,21 @@
             } catch (err) { console.error(err); showToast('Download failed'); }
         });
 
-        // Lightbox interactions
         function toggleZoom() { const img = els.lbImg; img.style.transform = img.style.transform ? '' : 'scale(1.5)'; }
         function closeLightbox() { els.lb.classList.remove('open'); els.lb.setAttribute('aria-hidden', 'true'); document.removeEventListener('keydown', keyNav); }
         function keyNav(e) { if (e.key === 'Escape') closeLightbox(); if (e.key === 'ArrowLeft') stepLightbox(-1); if (e.key === 'ArrowRight') stepLightbox(1); }
 
         let lbState = { parent: '', list: [], index: 0 };
-        async function openLightbox(filePath) { const parent = filePath.split('/').slice(0, -1).join('/'); const list = await getSiblingImages(filePath); const idx = Math.max(0, list.findIndex(x => x.path === filePath)); lbState = { parent, list, index: idx }; updateLightbox(); els.lb.classList.add('open'); els.lb.setAttribute('aria-hidden', 'false'); document.addEventListener('keydown', keyNav); }
+        async function openLightbox(filePath) {
+            const parent = filePath.split('/').slice(0, -1).join('/');
+            const list = await getSiblingImages(filePath);
+            const idx = Math.max(0, list.findIndex(x => x.path === filePath));
+            lbState = { parent, list, index: idx };
+            updateLightbox();
+            els.lb.classList.add('open');
+            els.lb.setAttribute('aria-hidden', 'false');
+            document.addEventListener('keydown', keyNav);
+        }
         function stepLightbox(delta) { if (!lbState.list.length) return; lbState.index = (lbState.index + delta + lbState.list.length) % lbState.list.length; updateLightbox(); }
         function updateLightbox() { const cur = lbState.list[lbState.index]; if (!cur) return; els.lbImg.src = rawURL(els.owner.value, els.repo.value, cur.path, els.branch.value); els.lbImg.alt = cur.name; }
         els.lbClose.addEventListener('click', closeLightbox);
@@ -1001,10 +1310,8 @@
         els.lbImg.addEventListener('click', toggleZoom);
         els.lb.addEventListener('click', (e) => { if (e.target === els.lb) closeLightbox(); });
 
-        // expose for preview image click
         window.openLightbox = openLightbox;
 
-        // GO
         boot();
     </script>
 </body>
