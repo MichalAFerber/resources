@@ -26,7 +26,8 @@
   transition: box-shadow .15s ease, transform .15s ease;
 }
 .cards a.card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.12); transform: translateY(-2px); }
-.cards a.card img { max-width: 100%; max-height: 84px; height: auto; margin-bottom: .7rem; }
+/* definite height + object-fit so SVGs without intrinsic width/height still render */
+.cards a.card img { width: 100%; height: 84px; object-fit: contain; margin-bottom: .7rem; }
 .cards a.card .label { font-weight: 600; text-align: center; }
 .cards a.card .count { color: #8b949e; font-size: .8rem; }
 
@@ -41,8 +42,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
+  height: 120px;
   padding: .75rem;
+  box-sizing: border-box;
   border: 1px solid #d0d7de;
   border-radius: 6px;
   /* checkerboard reveals both dark and white/transparent logos */
@@ -55,7 +57,8 @@
   background-size: 16px 16px;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }
-.gallery img { max-width: 100%; max-height: 120px; height: auto; }
+/* fill the tile and contain so intrinsic-less SVGs render at the right size */
+.gallery img { width: 100%; height: 100%; object-fit: contain; }
 .gallery figcaption {
   font-size: .72rem;
   color: #57606a;
@@ -65,8 +68,8 @@
 }
 
 .wallgallery { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-.wallgallery a { min-height: 160px; padding: 0; overflow: hidden; background: #000; }
-.wallgallery img { max-height: none; width: 100%; height: auto; display: block; }
+.wallgallery a { height: auto; min-height: 160px; padding: 0; overflow: hidden; background: #000; }
+.wallgallery img { width: 100%; height: auto; object-fit: cover; display: block; }
 
 .size { color: #8b949e; font-size: .85em; }
 .filelist ul { list-style: none; padding-left: 0; margin: .4rem 0; }
