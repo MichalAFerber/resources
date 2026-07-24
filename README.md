@@ -1,34 +1,32 @@
 # resources
 
-Static assets for personal projects: branding kits, logos, wallpapers, and social images. Public so they can be hot-linked or cloned as needed.
+Static assets for personal projects: company branding kits, fonts, and
+wallpapers. Public so they can be browsed, downloaded, or hot-linked.
 
-> Looking for the **GitHub Tree Browser** tool that used to live here? It moved to its own repo:
-> **[MichalAFerber/github-tree-browser](https://github.com/MichalAFerber/github-tree-browser)** — live at
-> [michalaferber.github.io/github-tree-browser](https://michalaferber.github.io/github-tree-browser/).
+**Browse the site:** [michalaferber.github.io/resources](https://michalaferber.github.io/resources/)
 
 ## Layout
 
 ```
 resources/
-├── company_branding_kits/   ← brand assets for third-party companies (Apple, Google, Proton, etc.)
-├── logos/                   ← personal/project logos
-├── socials/                 ← social media avatars + headers
-├── wallpaper/               ← desktop wallpapers
-├── favicon.ico              ← site favicon used by personal projects
-└── index.html               ← redirect to the GitHub Tree Browser
+├── company_branding_kits/   ← brand assets for third-party companies (Apple, GitHub, Proton, …)
+├── fonts/                    ← font families (JetBrains Mono + Nerd Font)
+└── wallpaper/                ← desktop wallpapers
 ```
 
 ## Hot-linking
 
-Files can be hot-linked via raw.githubusercontent.com or jsDelivr:
+Files can be hot-linked via raw.githubusercontent.com or jsDelivr (asset paths
+are stable):
 
 ```
 https://raw.githubusercontent.com/MichalAFerber/resources/main/<path>
 https://cdn.jsdelivr.net/gh/MichalAFerber/resources@main/<path>
 ```
 
-The GitHub Tree Browser at the link above is the easiest way to browse the tree and grab raw/CDN URLs with one click.
-
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Repository scaffolding is MIT — see [LICENSE](LICENSE). Third-party branding
+assets and fonts remain the property of their respective owners and are subject
+to their own brand guidelines and licenses (e.g. the JetBrains Mono fonts are
+under the SIL Open Font License, included alongside them).

@@ -1,0 +1,25 @@
+title: Resources
+description: Brand kits, fonts, and wallpapers — free to browse, download, and hot-link.
+
+# GitHub Pages project site: served at michalaferber.github.io/resources/,
+# so the base path is /resources.
+url: https://michalaferber.github.io
+baseurl: "/resources"
+
+theme: jekyll-theme-cayman
+
+repository: MichalAFerber/resources
+show_downloads: false
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Keep repo scaffolding out of the built site.
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - README.md
+  - LICENSE
+  - .gitignore
